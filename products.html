@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AVZDAX | THE ARSENAL</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;700&family=Share+Tech+Mono&display=swap');
+
+        body { margin: 0; background-color: #000; color: white; font-family: 'Rajdhani', sans-serif; overflow: hidden; }
+
+        /* --- BACKGROUND --- */
+        #canvas-container { position: fixed; inset: 0; z-index: 0; }
+        .overlay { position: fixed; inset: 0; background: radial-gradient(circle, transparent 50%, #000 120%); z-index: 1; pointer-events: none; }
+
+        /* --- MAIN CONTAINER --- */
+        .deck-container {
+            position: relative; z-index: 10; width: 100vw; height: 100vh;
+            display: flex; align-items: stretch; padding: 40px; gap: 10px;
+        }
+
+        /* --- CARD --- */
+        .card {
+            flex: 1; position: relative; background: rgba(10, 10, 10, 0.6);
+            border: 1px solid #333; backdrop-filter: blur(10px);
+            transition: flex 0.6s cubic-bezier(0.25, 1, 0.5, 1), border-color 0.3s, background 0.3s;
+            overflow: hidden; cursor: pointer; display: flex; flex-direction: column; justify-content: flex-end;
+        }
+        .card:hover { flex: 3; border-color: var(--accent); background: rgba(0,0,0,0.8); box-shadow: 0 0 50px rgba(0,0,0,0.5); }
+
+        .spine-title {
+            position: absolute; top: 50px; left: 50%; transform: translateX(-50%) rotate(90deg);
+            white-space: nowrap; font-family: 'Orbitron'; font-weight: 900; font-size: 3rem; color: #333;
+            transition: all 0.4s; letter-spacing: 10px; text-transform: uppercase; pointer-events: none;
+        }
+        .card:hover .spine-title { opacity: 0; transform: translateX(-50%) rotate(90deg) translateY(-50px); }
+
+        .card-inner {
+            padding: 40px; opacity: 0; transform: translateY(20px); transition: all 0.4s 0.1s; width: 100%;
+        }
+        .card:hover .card-inner { opacity: 1; transform: translateY(0); }
+
+        .card-num { font-family: 'Share Tech Mono'; font-size: 12px; color: var(--accent); margin-bottom: 10px; }
+        .card-head { font-family: 'Orbitron'; font-size: 4rem; line-height: 0.9; font-weight: 900; margin-bottom: 20px; color: white; }
+        .card-desc { font-size: 1.1rem; color: #999; max-width: 400px; line-height: 1.4; margin-bottom: 40px; }
+
+        .tech-icon {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 100px; height: 100px; border: 1px solid #333; border-radius: 50%;
+            transition: all 0.6s; opacity: 0.3;
+        }
+        .card:hover .tech-icon { top: 20%; transform: translate(-50%, 0) scale(1.5); border-color: var(--accent); opacity: 0.1; }
+
+        .access-btn {
+            display: inline-block; padding: 15px 40px; border: 1px solid var(--accent);
+            color: var(--accent); font-family: 'Share Tech Mono'; font-size: 14px;
+            text-transform: uppercase; transition: all 0.3s; text-decoration: none;
+        }
+        .access-btn:hover { background: var(--accent); color: black; box-shadow: 0 0 30px var(--accent); }
+
+        .page-header { position: absolute; top: 30px; left: 40px; z-index: 50; display: flex; gap: 20px; align-items: center; }
+        .home-btn { font-family: 'Share Tech Mono'; font-size: 12px; color: #666; cursor: pointer; text-decoration: none; }
+        .home-btn:hover { color: white; }
+    </style>
+</head>
+<body>
+
+    <div id="canvas-container"></div>
+    <div class="overlay"></div>
+
+
+<!-- ================================================== -->
+<!-- TACTICAL RETURN NODE (PASTE AFTER <BODY>) -->
+<!-- ================================================== -->
+<style>
+    .return-node {
+        position: fixed; top: 110px; left: 5vw; z-index: 8000;
+        display: flex; align-items: center; gap: 15px;
+        cursor: pointer; pointer-events: auto; text-decoration: none;
+    }
+
+    /* The Circle Container */
+    .node-circle {
+        width: 45px; height: 45px;
+        border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(10px);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    /* The Arrow Icon */
+    .node-arrow {
+        width: 18px; height: 18px; stroke: #888; stroke-width: 2; fill: none;
+        transition: all 0.3s ease;
+    }
+
+    /* The Text Label (Hidden until hover) */
+    .node-label {
+        font-family: 'Share Tech Mono', monospace; font-size: 11px; color: #00ffaa;
+        letter-spacing: 2px; text-transform: uppercase;
+        opacity: 0; transform: translateX(-10px);
+        transition: all 0.3s ease-out;
+    }
+
+    /* --- HOVER EFFECTS --- */
+    .return-node:hover .node-circle {
+        border-color: #00ffaa;
+        box-shadow: 0 0 20px rgba(0, 255, 170, 0.2);
+        transform: scale(1.1);
+    }
+    
+    .return-node:hover .node-arrow {
+        stroke: #00ffaa;
+        transform: translateX(-3px); /* Arrow pulls back visually */
+    }
+
+    .return-node:hover .node-label {
+        opacity: 1;
+        transform: translateX(0);
+    }
+</style>
+<body
+    <!-- TACTICAL RETURN NODE (PASTE AFTER <BODY>) -->
+<!-- ================================================== -->
+<style>
+    .return-node {
+        position: fixed; top: 110px; left: 5vw; z-index: 8000;
+        display: flex; align-items: center; gap: 15px;
+        cursor: pointer; pointer-events: auto; text-decoration: none;
+    }
+
+    /* The Circle Container */
+    .node-circle {
+        width: 45px; height: 45px;
+        border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(10px);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    /* The Arrow Icon */
+    .node-arrow {
+        width: 18px; height: 18px; stroke: #888; stroke-width: 2; fill: none;
+        transition: all 0.3s ease;
+    }
+
+    /* The Text Label (Hidden until hover) */
+    .node-label {
+        font-family: 'Share Tech Mono', monospace; font-size: 11px; color: #00ffaa;
+        letter-spacing: 2px; text-transform: uppercase;
+        opacity: 0; transform: translateX(-10px);
+        transition: all 0.3s ease-out;
+    }
+
+    /* --- HOVER EFFECTS --- */
+    .return-node:hover .node-circle {
+        border-color: #00ffaa;
+        box-shadow: 0 0 20px rgba(0, 255, 170, 0.2);
+        transform: scale(1.1);
+    }
+    
+    .return-node:hover .node-arrow {
+        stroke: #00ffaa;
+        transform: translateX(-3px); /* Arrow pulls back visually */
+    }
+
+    .return-node:hover .node-label {
+        opacity: 1;
+        transform: translateX(0);
+    }
+</style>
+
+<a href="index.html" class="return-node">
+    <div class="node-circle">
+        <svg class="node-arrow" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+    </div>
+    <div class="node-label">RETURN TO BASE</div>
+</a>
+<!-- ================================================== -->
+
+
+
+    <div class="deck-container">
+        
+        <!-- 1. PRIMUS -->
+        <div class="card" style="--accent: #00ffaa;" onclick="window.location.href='product-primus.html'">
+            <div class="tech-icon border-2 transform rotate-45"></div>
+            <div class="spine-title">PRIMUS</div>
+            <div class="card-inner">
+                <div class="card-num">01 // SOFTWARE</div>
+                <h2 class="card-head">INTELLIGENCE<br>LAYER</h2>
+                <p class="card-desc">Behavioral AI that detects intent before action.</p>
+                <a href="product-primus.html" class="access-btn">ACCESS TERMINAL</a>
+            </div>
+        </div>
+
+        <!-- 2. TRION -->
+        <div class="card" style="--accent: #00aaff;" onclick="window.location.href='product-trion.html'">
+            <div class="tech-icon"></div>
+            <div class="spine-title">TRION</div>
+            <div class="card-inner">
+                <div class="card-num">02 // HARDWARE</div>
+                <h2 class="card-head">EDGE<br>OPTICS</h2>
+                <p class="card-desc">Ruggedized cameras with onboard neural processing.</p>
+                <a href="product-trion.html" class="access-btn">VIEW BLUEPRINTS</a>
+            </div>
+        </div>
+
+        <!-- 3. TELETRAAN -->
+        <div class="card" style="--accent: #ffaa00;" onclick="window.location.href='product-teletraan.html'">
+            <div class="tech-icon border-dashed"></div>
+            <div class="spine-title">TELETRAAN</div>
+            <div class="card-inner">
+                <div class="card-num">03 // OS</div>
+                <h2 class="card-head">CENTRAL<br>GRID</h2>
+                <p class="card-desc">The Operating System. Aggregate thousands of feeds into one dashboard.</p>
+                <a href="product-teletraan.html" class="access-btn">LAUNCH OS</a>
+            </div>
+        </div>
+
+        <!-- 4. NEST -->
+        <div class="card" style="--accent: #ff3333;" onclick="window.location.href='product-nest.html'">
+            <div class="tech-icon border-4"></div>
+            <div class="spine-title">NEST</div>
+            <div class="card-inner">
+                <div class="card-num">04 // SERVICE</div>
+                <h2 class="card-head">COMMAND<br>WATCH</h2>
+                <p class="card-desc">24/7 Remote Monitoring. Human analysts verify and dispatch.</p>
+                <a href="product-nest.html" class="access-btn">OPEN UPLINK</a>
+            </div>
+        </div>
+
+        <!-- 5. OBEX -->
+        <div class="card" style="--accent: #ffffff;" onclick="window.location.href='product-obex.html'">
+            <div class="tech-icon rounded-xl"></div>
+            <div class="spine-title">OBEX</div>
+            <div class="card-inner">
+                <div class="card-num">05 // CONSUMER</div>
+                <h2 class="card-head">COMPACT<br>DEFENSE</h2>
+                <p class="card-desc">Enterprise-grade security for residential and small business.</p>
+                <a href="product-obex.html" class="access-btn">VIEW UNIT</a>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // PARTICLES
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+        camera.position.z = 30;
+        const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        container.appendChild(renderer.domElement);
+
+        const geo = new THREE.BufferGeometry();
+        const pos = new Float32Array(3000);
+        for(let i=0; i<3000; i++) pos[i] = (Math.random()-0.5)*100;
+        geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+        const mat = new THREE.PointsMaterial({ size: 0.1, color: 0x444444 });
+        const stars = new THREE.Points(geo, mat);
+        scene.add(stars);
+
+        function animate() {
+            requestAnimationFrame(animate);
+            stars.rotation.y += 0.0005;
+            renderer.render(scene, camera);
+        }
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth/window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+        animate();
+    </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- ================================================== -->
+<!-- GLOBAL COMMS UPLINK V4 (HOLOGRAPHIC NODE) -->
+<!-- ================================================== -->
+
+<style>
+    /* IMPORT FONTS (Ensure visibility) */
+    @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@500;900&display=swap');
+
+    /* --- 1. THE HOLOGRAPHIC TRIGGER --- */
+    #uplink-wrapper {
+        position: fixed; bottom: 40px; right: 40px; z-index: 999999;
+        display: flex; align-items: center; gap: 15px; pointer-events: none; /* Wrapper doesn't block clicks */
+    }
+
+    /* The Status Label (Floating Text) */
+    .uplink-label {
+        background: rgba(0, 0, 0, 0.8); border: 1px solid #00ffaa;
+        color: #00ffaa; font-family: 'Share Tech Mono', monospace; font-size: 10px;
+        padding: 6px 12px; border-radius: 4px; pointer-events: auto;
+        backdrop-filter: blur(10px); letter-spacing: 1px;
+        box-shadow: 0 0 15px rgba(0, 255, 170, 0.1);
+        transform: translateX(10px); opacity: 0; transition: all 0.3s ease;
+    }
+    #uplink-wrapper:hover .uplink-label { opacity: 1; transform: translateX(0); }
+
+    /* The Orb Button */
+    #uplink-btn {
+        width: 70px; height: 70px; cursor: pointer; pointer-events: auto;
+        border-radius: 50%; position: relative;
+        background: radial-gradient(circle at 30% 30%, #222, #000);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.8), inset 0 0 20px rgba(0,255,170,0.1);
+        display: flex; align-items: center; justify-content: center;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    
+    #uplink-btn:hover { 
+        transform: scale(1.1); 
+        border-color: #00ffaa;
+        box-shadow: 0 0 40px rgba(0, 255, 170, 0.4), inset 0 0 30px rgba(0,255,170,0.2);
+    }
+
+    /* Internal Icon */
+    .chat-icon { color: white; transition: 0.3s; filter: drop-shadow(0 0 5px rgba(255,255,255,0.5)); }
+    #uplink-btn:hover .chat-icon { color: #00ffaa; filter: drop-shadow(0 0 8px #00ffaa); }
+
+    /* Pulse Ring Animation */
+    .pulse-emitter {
+        position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+        width: 100%; height: 100%; border-radius: 50%; border: 1px solid #00ffaa;
+        animation: sonarWave 2s infinite; opacity: 0; pointer-events: none;
+    }
+    @keyframes sonarWave { 
+        0% { width: 100%; height: 100%; opacity: 0.8; border-width: 2px; }
+        100% { width: 250%; height: 250%; opacity: 0; border-width: 0px; } 
+    }
+
+
+    /* --- 2. THE COMMAND INTERFACE --- */
+    #uplink-window {
+        position: fixed; bottom: 130px; right: 40px; width: 400px; height: 600px;
+        background: rgba(10, 12, 14, 0.95); 
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-top: 4px solid #00ffaa;
+        z-index: 999999; display: flex; flex-direction: column;
+        transform-origin: bottom right;
+        transform: scale(0.9) translateY(20px); opacity: 0; pointer-events: none;
+        transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+        box-shadow: 0 20px 60px rgba(0,0,0,0.9);
+        border-radius: 12px; overflow: hidden;
+        font-family: 'Share Tech Mono', monospace;
+    }
+    #uplink-window.active { transform: scale(1) translateY(0); opacity: 1; pointer-events: auto; }
+
+    /* Glass & Grain FX */
+    #uplink-window::before {
+        content: ""; position: absolute; inset: 0; pointer-events: none; z-index: -1;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+        opacity: 0.5;
+    }
+    #uplink-window::after {
+        content: ""; position: absolute; inset: 0; pointer-events: none; z-index: -2;
+        backdrop-filter: blur(20px);
+    }
+
+    /* HEADER */
+    .term-header {
+        padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.1);
+        background: linear-gradient(to bottom, rgba(255,255,255,0.05), transparent);
+        display: flex; justify-content: space-between; align-items: center;
+    }
+    .term-brand { font-family: 'Orbitron'; color: white; font-weight: 900; font-size: 14px; letter-spacing: 1px; }
+    .term-signal { 
+        font-size: 10px; color: #00ffaa; display: flex; align-items: center; gap: 6px; 
+        text-shadow: 0 0 10px rgba(0, 255, 170, 0.5);
+    }
+    .signal-bars { display: flex; gap: 2px; align-items: flex-end; height: 10px; }
+    .bar { width: 3px; background: #00ffaa; }
+    .b1 { height: 4px; opacity: 0.4; } .b2 { height: 7px; opacity: 0.7; } .b3 { height: 10px; }
+
+    /* FEED */
+    .term-feed {
+        flex-grow: 1; padding: 20px; overflow-y: auto;
+        display: flex; flex-direction: column; gap: 15px;
+        /* Scanline Background */
+        background: linear-gradient(to bottom, rgba(0,0,0,0) 50%, rgba(0,0,0,0.2) 50%);
+        background-size: 100% 4px;
+    }
+    .term-feed::-webkit-scrollbar { width: 4px; }
+    .term-feed::-webkit-scrollbar-thumb { background: #333; }
+
+    /* MESSAGES */
+    .log-row { font-size: 12px; line-height: 1.5; display: flex; flex-direction: column; }
+    .log-meta { font-size: 9px; color: #555; margin-bottom: 2px; }
+    
+    .sys-msg { color: #00ffaa; text-shadow: 0 0 5px rgba(0, 255, 170, 0.3); }
+    .usr-msg { color: white; text-align: right; align-self: flex-end; background: rgba(255,255,255,0.1); padding: 8px 12px; border-radius: 4px; display: inline-block; border: 1px solid rgba(255,255,255,0.2); }
+
+    /* INPUT */
+    .term-input-area {
+        padding: 20px; border-top: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.6);
+        display: flex; align-items: center; gap: 10px;
+    }
+    .cursor { color: #00ffaa; animation: blink 1s infinite; }
+    .input-cmd {
+        width: 100%; background: transparent; border: none; outline: none;
+        color: white; font-family: 'Share Tech Mono'; font-size: 14px;
+    }
+    .tx-btn {
+        font-size: 10px; color: #00ffaa; border: 1px solid #00ffaa; padding: 5px 10px;
+        cursor: pointer; transition: all 0.2s;
+    }
+    .tx-btn:hover { background: #00ffaa; color: black; }
+
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+    /* MOBILE */
+    @media (max-width: 768px) {
+        #uplink-window { width: 90%; right: 5%; bottom: 110px; height: 60vh; }
+    }
+</style>
+
+<!-- TRIGGER -->
+<div id="uplink-wrapper">
+    <div class="uplink-label">SYSTEM ONLINE</div>
+    <div id="uplink-btn" onclick="window.toggleUplink()">
+        <div class="pulse-emitter"></div>
+        <svg class="chat-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+    </div>
+</div>
+
+<!-- TERMINAL -->
+<div id="uplink-window">
+    <div class="term-header">
+        <div class="term-brand">AVZDAX COMMAND</div>
+        <div class="term-signal">
+            <div class="signal-bars"><div class="bar b1"></div><div class="bar b2"></div><div class="bar b3"></div></div>
+            LINK_ESTABLISHED
+        </div>
+    </div>
+
+    <div class="term-feed" id="console-feed">
+        <div class="log-row">
+            <span class="log-meta">SYS_INIT // [12:01:42]</span>
+            <span class="sys-msg">> ENCRYPTED CHANNEL OPEN.</span>
+        </div>
+    </div>
+
+    <div class="term-input-area">
+        <span class="cursor">></span>
+        <input type="text" id="cmd-input" class="input-cmd" placeholder="ENTER QUERY..." onkeypress="window.handleKey(event)">
+        <div class="tx-btn" onclick="window.transmit()">SEND</div>
+    </div>
+</div>
+
+<!-- LOGIC -->
+<script>
+    (function() {
+        let isOpen = false;
+        const win = document.getElementById('uplink-window');
+        const feed = document.getElementById('console-feed');
+        const input = document.getElementById('cmd-input');
+
+        window.toggleUplink = function() {
+            isOpen = !isOpen;
+            if (isOpen) {
+                win.classList.add('active');
+                if (feed.children.length < 2) {
+                    setTimeout(() => sysType("OPERATOR_04 has joined the session."), 600);
+                    setTimeout(() => sysType("How may we secure your operations?"), 1500);
+                }
+            } else {
+                win.classList.remove('active');
+            }
+        };
+
+        window.handleKey = function(e) {
+            if (e.key === 'Enter') window.transmit();
+        };
+
+        window.transmit = function() {
+            const txt = input.value.trim();
+            if (!txt) return;
+
+            // User Msg
+            addLog(txt, true);
+            input.value = '';
+            feed.scrollTop = feed.scrollHeight;
+
+            // Bot Logic
+            setTimeout(() => {
+                sysType("Processing inquiry...");
+            }, 600);
+            
+            setTimeout(() => {
+                sysType("Your request has been logged. An agent is reviewing your dossier.");
+            }, 2000);
+        };
+
+        // Helper: Add User Log
+        function addLog(text, isUser) {
+            const time = new Date().toLocaleTimeString('en-GB', { hour12: false });
+            const div = document.createElement('div');
+            div.className = 'log-row';
+            
+            if(isUser) {
+                div.innerHTML = `<span class="log-meta" style="text-align:right; color:#666;">USER_ID // [${time}]</span><span class="usr-msg">${text}</span>`;
+            } else {
+                div.innerHTML = `<span class="log-meta">SYS // [${time}]</span><span class="sys-msg">> ${text}</span>`;
+            }
+            feed.appendChild(div);
+        }
+
+        // Helper: Typewriter Effect for System
+        function sysType(text) {
+            const time = new Date().toLocaleTimeString('en-GB', { hour12: false });
+            const div = document.createElement('div');
+            div.className = 'log-row';
+            div.innerHTML = `<span class="log-meta">SYS // [${time}]</span><span class="sys-msg"></span>`;
+            feed.appendChild(div);
+            
+            const span = div.querySelector('.sys-msg');
+            let i = 0;
+            span.innerText = "> ";
+            
+            function type() {
+                if (i < text.length) {
+                    span.innerText += text.charAt(i);
+                    i++;
+                    feed.scrollTop = feed.scrollHeight;
+                    setTimeout(type, 20);
+                }
+            }
+            type();
+        }
+    })();
+</script>
+</body>
+</html>

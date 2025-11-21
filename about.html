@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AVZDAX | THE MANIFESTO</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Space+Grotesk:wght@300;500;700&family=Share+Tech+Mono&display=swap');
+
+        body { 
+            margin: 0; background-color: #000; color: #e5e5e5; 
+            font-family: 'Space Grotesk', sans-serif; overflow-x: hidden;
+        }
+
+        /* --- GLOBAL UTILS --- */
+        .text-neon { color: #00ffaa; text-shadow: 0 0 20px rgba(0,255,170,0.4); }
+        .border-neon { border-color: #00ffaa; }
+        .glass-panel {
+            background: rgba(10, 10, 10, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* --- BACKGROUND FX --- */
+        #canvas-container { position: fixed; inset: 0; z-index: -1; opacity: 0.6; }
+        .noise {
+            position: fixed; inset: 0; opacity: 0.05; pointer-events: none; z-index: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        /* --- SECTION 1: THE HOOK --- */
+        .manifesto-title {
+            font-family: 'Syncopate', sans-serif; font-weight: 700;
+            font-size: clamp(2.5rem, 6vw, 7rem); line-height: 0.9;
+            color: white; letter-spacing: -0.05em;
+            margin-bottom: 40px;
+        }
+        
+        .manifesto-text {
+            font-size: clamp(1.1rem, 2vw, 1.5rem); line-height: 1.5;
+            max-width: 800px; color: #888; font-weight: 300;
+        }
+        .highlight { color: white; font-weight: 500; border-bottom: 1px solid #00ffaa; }
+
+        /* --- SECTION 2: THE FOUNDER HUD --- */
+        .founder-hud {
+            position: relative; width: 100%; max-width: 600px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: linear-gradient(180deg, rgba(20,20,20,0.9) 0%, rgba(0,0,0,0.9) 100%);
+        }
+        
+        .hud-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 15px 20px; border-bottom: 1px solid rgba(255,255,255,0.1);
+            font-family: 'Share Tech Mono'; font-size: 10px; letter-spacing: 2px; color: #666;
+        }
+        
+        .status-live {
+            display: flex; align-items: center; gap: 8px; color: #00ffaa;
+            border: 1px solid #00ffaa; padding: 4px 10px; background: rgba(0,255,170,0.05);
+        }
+        .blink-dot { width: 6px; height: 6px; background: #00ffaa; border-radius: 50%; box-shadow: 0 0 10px #00ffaa; animation: blink 1s infinite; }
+
+        .profile-image-placeholder {
+            height: 300px; width: 100%;
+            background: repeating-linear-gradient(45deg, #111, #111 10px, #151515 10px, #151515 20px);
+            display: flex; align-items: center; justify-content: center;
+            position: relative; overflow: hidden;
+        }
+        /* Laser Scan Effect over Image */
+        .scan-line {
+            position: absolute; top: 0; left: 0; width: 100%; height: 2px;
+            background: #00ffaa; box-shadow: 0 0 15px #00ffaa;
+            animation: scanDown 3s infinite ease-in-out;
+        }
+
+        .hud-body { padding: 30px; }
+        .founder-name {
+            font-family: 'Syncopate'; font-weight: 700; font-size: 2rem; color: white; line-height: 1;
+        }
+        .founder-role {
+            font-family: 'Share Tech Mono'; color: #666; font-size: 12px; letter-spacing: 3px; margin-top: 5px;
+        }
+
+        /* --- SECTION 3: THE PHILOSOPHY GRID --- */
+        .philosophy-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.1);
+        }
+        .phil-card {
+            background: #050505; padding: 40px; transition: background 0.3s;
+            display: flex; flex-direction: column; justify-content: space-between; height: 350px;
+        }
+        .phil-card:hover { background: #0a0a0a; }
+        .phil-num { font-family: 'Share Tech Mono'; color: #333; font-size: 12px; margin-bottom: 20px; }
+        .phil-card:hover .phil-num { color: #00ffaa; }
+        .phil-head { font-family: 'Orbitron'; font-size: 1.5rem; color: white; margin-bottom: 10px; }
+        .phil-desc { font-size: 0.9rem; color: #888; line-height: 1.6; }
+
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        @keyframes scanDown { 0% { top: -10%; } 100% { top: 110%; } }
+
+        /* SCROLL PROGRESS BAR */
+        .scroll-progress {
+            position: fixed; top: 0; left: 0; height: 3px; background: #00ffaa; width: 0%; z-index: 50;
+        }
+
+    </style>
+</head>
+<body>
+    <!-- GLOBAL NAVIGATION BAR 
+<!-- -->
+<style>
+    .nav-layer {
+        position: fixed; top: 0; left: 0; width: 100%; height: 80px;
+        z-index: 9999; display: flex; justify-content: space-between; align-items: center;
+        padding: 0 5vw; pointer-events: none; mix-blend-mode: exclusion;
+        background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent); /* Subtle shade for readability */
+    }
+
+    .brand {
+        font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 1.5rem; color: white;
+        pointer-events: auto; text-decoration: none; letter-spacing: 2px;
+    }
+    
+    .menu { display: flex; gap: 30px; pointer-events: auto; }
+    
+    .menu-item {
+        font-family: 'Share Tech Mono', monospace;
+        color: white; text-decoration: none; font-size: 12px; letter-spacing: 2px;
+        position: relative; transition: color 0.3s; font-weight: 700; cursor: pointer;
+    }
+    .menu-item::after {
+        content: ''; position: absolute; bottom: -5px; left: 0; width: 0%; height: 1px;
+        background: #00ffaa; transition: width 0.3s;
+    }
+    .menu-item:hover { color: #00ffaa; }
+    .menu-item:hover::after { width: 100%; }
+    
+    /* Mobile Menu Fix */
+    @media (max-width: 768px) {
+        .menu { display: none; } /* Hide on mobile for now or add hamburger logic */
+        .nav-layer { justify-content: center; }
+    }
+</style>
+
+<nav class="nav-layer">
+    <!-- Brand Logo links back to Home -->
+    <a href="index.html" class="brand">AVZDAX</a>
+    
+    <div class="menu">
+        <!-- Direct links to all files -->
+        <a class="menu-item" href="about.html">MISSION</a>
+        <a class="menu-item" href="products.html">PRODUCTS</a>
+        <a class="menu-item" href="industries.html">INDUSTRIES</a>
+        <a class="menu-item" href="newsroom.html">NEWSROOM</a>
+        <a class="menu-item" href="careers.html">CAREERS</a>
+        <a class="menu-item" href="contact.html">CONTACT</a>
+    </div>
+</nav>
+<!-- ================================================== -->
+
+<!-- ================================================== -->
+<!-- TACTICAL RETURN NODE (PASTE AFTER <BODY>) -->
+<!-- ================================================== -->
+<style>
+    .return-node {
+        position: fixed; top: 110px; left: 5vw; z-index: 8000;
+        display: flex; align-items: center; gap: 15px;
+        cursor: pointer; pointer-events: auto; text-decoration: none;
+    }
+
+    /* The Circle Container */
+    .node-circle {
+        width: 45px; height: 45px;
+        border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(10px);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    /* The Arrow Icon */
+    .node-arrow {
+        width: 18px; height: 18px; stroke: #888; stroke-width: 2; fill: none;
+        transition: all 0.3s ease;
+    }
+
+    /* The Text Label (Hidden until hover) */
+    .node-label {
+        font-family: 'Share Tech Mono', monospace; font-size: 11px; color: #00ffaa;
+        letter-spacing: 2px; text-transform: uppercase;
+        opacity: 0; transform: translateX(-10px);
+        transition: all 0.3s ease-out;
+    }
+
+    /* --- HOVER EFFECTS --- */
+    .return-node:hover .node-circle {
+        border-color: #00ffaa;
+        box-shadow: 0 0 20px rgba(0, 255, 170, 0.2);
+        transform: scale(1.1);
+    }
+    
+    .return-node:hover .node-arrow {
+        stroke: #00ffaa;
+        transform: translateX(-3px); /* Arrow pulls back visually */
+    }
+
+    .return-node:hover .node-label {
+        opacity: 1;
+        transform: translateX(0);
+    }
+</style>
+
+<a href="index.html" class="return-node">
+    <div class="node-circle">
+        <svg class="node-arrow" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+    </div>
+    <div class="node-label">RETURN TO BASE</div>
+</a>
+<!-- ================================================== -->
+
+
+
+    <!-- 3D BACKGROUND -->
+    <div id="canvas-container"></div>
+    <div class="noise"></div>
+    <div class="scroll-progress" id="progressBar"></div>
+
+    <div class="relative z-10 px-6 md:px-20 py-32 max-w-[1600px] mx-auto">
+
+        <!-- 1. THE HOOK -->
+        <section class="min-h-[80vh] flex flex-col justify-center">
+            <div class="font-mono text-xs text-[#00ffaa] tracking-[0.3em] mb-6 flex items-center gap-4">
+                <div class="w-10 h-[1px] bg-[#00ffaa]"></div>
+                MISSION DOSSIER: DECLASSIFIED
+            </div>
+            
+            <h1 class="manifesto-title reveal-text">
+                SECURITY IS NOT<br>
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-white to-[#444]">DOCUMENTATION.</span>
+            </h1>
+            <h1 class="manifesto-title text-neon reveal-text" style="margin-top: -20px;">
+                IT IS DOMINANCE.
+            </h1>
+
+            <div class="mt-10 grid grid-cols-1 lg:grid-cols-12 gap-10">
+                <div class="lg:col-span-8">
+                    <p class="manifesto-text reveal-text">
+                        Traditional security is an autopsy. It studies the crime after the victim has fallen. It sells you a 4K recording of your own loss. <span class="highlight">We rejected that reality.</span>
+                    </p>
+                    <p class="manifesto-text mt-6 reveal-text">
+                        AVZDAX was forged in the fires of necessity. We are not a camera company. We are **Civilization Architects**. We build the neural networks that allow cities, estates, and critical infrastructure to **predict violence before it breathes.**
+                    </p>
+                </div>
+                
+                <!-- METRIC BADGE -->
+                <div class="lg:col-span-4 flex items-end justify-start lg:justify-end">
+                    <div class="text-left lg:text-right">
+                        <div class="text-6xl font-bold font-mono text-white">0.00<span class="text-[#00ffaa]">s</span></div>
+                        <div class="text-xs font-mono text-gray-500 tracking-widest mt-2">ACCEPTABLE LATENCY</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. THE ARCHITECT (FOUNDER) -->
+        <section class="py-32 grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+            
+            <!-- LEFT: THE HUD CARD -->
+            <div class="relative">
+                <!-- Decor line -->
+                <div class="absolute -left-10 top-10 bottom-10 w-[1px] bg-gray-800 hidden lg:block"></div>
+                
+                <div class="founder-hud reveal-card">
+                    <div class="hud-header">
+                        <span>ENCRYPTED_CONN_V4</span>
+                        <div class="status-live"><div class="blink-dot"></div> GS_ACTIVE</div>
+                    </div>
+                    
+                    <!-- Simulated Video Feed / Image -->
+                    <div class="profile-image-placeholder">
+                        <div class="scan-line"></div>
+                        <div class="text-center">
+                            <div class="text-6xl font-bold text-[#1a1a1a]">AVZDAX</div>
+                            <div class="text-xs font-mono text-[#00ffaa] mt-2">AWAITING BIOMETRIC INPUT</div>
+                        </div>
+                    </div>
+
+                    <div class="hud-body">
+                        <div class="founder-name">GBENGA A. SOSAN</div>
+                        <div class="founder-role">FOUNDER // CHIEF ARCHITECT</div>
+                        
+                        <div class="mt-8 space-y-4 font-mono text-xs text-gray-400">
+                            <div class="flex justify-between border-b border-gray-800 pb-2">
+                                <span>CLEARANCE</span> <span class="text-white">OMEGA LEVEL</span>
+                            </div>
+                            <div class="flex justify-between border-b border-gray-800 pb-2">
+                                <span>OPERATIONS</span> <span class="text-white">GLOBAL STRATEGY</span>
+                            </div>
+                            <div class="flex justify-between border-b border-gray-800 pb-2">
+                                <span>CORE DIRECTIVE</span> <span class="text-[#00ffaa]">ZERO-CRIME FUTURE</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT: THE STORY -->
+            <div class="reveal-text">
+                <div class="font-mono text-xs text-gray-500 mb-4">ORIGIN PROTOCOL // THE CATALYST</div>
+                <h2 class="text-4xl font-bold text-white font-orbitron mb-8">THE DAY THE CAMERAS FAILED</h2>
+                
+                <p class="text-lg text-gray-400 leading-relaxed mb-6">
+                    "I was working for a high-profile executive. We had the best CCTV money could buy. Yet, when the thieves came, the cameras did nothing but watch. They were passive observers to a crime in progress."
+                </p>
+                <p class="text-lg text-gray-400 leading-relaxed mb-6">
+                    "That day, I realized that **Blind Surveillance is a Liability**. A camera that cannot scream, cannot call for help, and cannot predict intent is just a piece of glass."
+                </p>
+                <p class="text-lg text-gray-400 leading-relaxed">
+                    "I built AVZDAX to solve the **Time Problem**. We give security teams the ability to intervene *before* the glass breaks. We moved the timeline of defense from 'After' to 'Now'."
+                </p>
+                
+                <div class="mt-10">
+                    <div class="inline-block border border-white/20 px-6 py-3 text-sm font-mono text-white hover:bg-white hover:text-black transition-colors cursor-pointer">
+                        READ FULL DOSSIER ->
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- 3. THE PHILOSOPHY -->
+        <section class="py-32">
+            <div class="flex items-end justify-between mb-10">
+                <h2 class="text-5xl font-bold text-white font-syncopate">OPERATIONAL<br>DOCTRINE</h2>
+                <div class="hidden md:block font-mono text-xs text-gray-500 text-right">
+                    SYSTEM INTEGRITY: 100%<br>PROTOCOL: ACTIVE
+                </div>
+            </div>
+
+            <div class="philosophy-grid">
+                <!-- 1 -->
+                <div class="phil-card group">
+                    <div>
+                        <div class="phil-num">01 // VISIBILITY</div>
+                        <h3 class="phil-head">TOTAL<br>OMNISCIENCE</h3>
+                    </div>
+                    <p class="phil-desc group-hover:text-white transition-colors">
+                        We do not accept blind spots. Through <strong>Teletraan OS</strong>, we aggregate data from cameras, seismic sensors, and biometrics into a single, god-like view of the battlefield.
+                    </p>
+                </div>
+
+                <!-- 2 -->
+                <div class="phil-card group">
+                    <div>
+                        <div class="phil-num">02 // INTELLIGENCE</div>
+                        <h3 class="phil-head">PREDICTIVE<br>LOGIC</h3>
+                    </div>
+                    <p class="phil-desc group-hover:text-white transition-colors">
+                        <strong>PRIMUS AI</strong> does not look for motion; it looks for intent. It tracks skeletal gait, hesitation, and aggression. We solve the crime in the neural network before it manifests in reality.
+                    </p>
+                </div>
+
+                <!-- 3 -->
+                <div class="phil-card group">
+                    <div>
+                        <div class="phil-num">03 // ACTION</div>
+                        <h3 class="phil-head">ETHICAL<br>FORCE</h3>
+                    </div>
+                    <p class="phil-desc group-hover:text-white transition-colors">
+                        Power requires precision. Our systems eliminate false positives, ensuring that when <strong>NEST</strong> dispatches a response, it is rapid, justified, and overwhelming.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SCROLL CONNECTOR -->
+        <div class="h-40 flex flex-col justify-center items-center relative z-10">
+            <div class="text-[#00ffaa] font-mono text-xs tracking-[0.3em] mb-2">NEXT: INTELLIGENCE GRID</div>
+            <div class="w-[1px] h-16 bg-gradient-to-b from-[#00ffaa] to-transparent"></div>
+        </div>
+
+    </div>
+
+    <!-- THREE.JS PARTICLE WAVE -->
+    <script>
+        gsap.registerPlugin(ScrollTrigger);
+
+        // Scroll Progress
+        window.addEventListener("scroll", () => {
+            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (winScroll / height) * 100;
+            document.getElementById("progressBar").style.width = scrolled + "%";
+        });
+
+        // Text Reveals
+        gsap.utils.toArray('.reveal-text').forEach(text => {
+            gsap.from(text, {
+                scrollTrigger: { trigger: text, start: "top 80%" },
+                y: 50, opacity: 0, duration: 1, ease: "power3.out"
+            });
+        });
+
+        gsap.from(".reveal-card", {
+            scrollTrigger: { trigger: ".reveal-card", start: "top 75%" },
+            x: -50, opacity: 0, duration: 1.2, ease: "power2.out"
+        });
+
+        // THREE.JS BACKGROUND
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        // No background color needed, CSS handles it.
+        
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 50;
+        camera.position.y = 10;
+
+        const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        container.appendChild(renderer.domElement);
+
+        // PARTICLE WAVE
+        const particlesGeometry = new THREE.BufferGeometry();
+        const particlesCount = 1500;
+        const posArray = new Float32Array(particlesCount * 3);
+
+        for(let i = 0; i < particlesCount * 3; i++) {
+            posArray[i] = (Math.random() - 0.5) * 150; // Spread wide
+        }
+
+        particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+        const particlesMaterial = new THREE.PointsMaterial({
+            size: 0.2, color: 0x00ffaa, transparent: true, opacity: 0.6
+        });
+        const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+        scene.add(particlesMesh);
+
+        // ANIMATION
+        let mouseX = 0;
+        let mouseY = 0;
+
+        document.addEventListener('mousemove', (event) => {
+            mouseX = event.clientX / window.innerWidth - 0.5;
+            mouseY = event.clientY / window.innerHeight - 0.5;
+        });
+
+        const clock = new THREE.Clock();
+
+        function animate() {
+            const elapsedTime = clock.getElapsedTime();
+
+            // Wave motion
+            particlesMesh.rotation.y = elapsedTime * 0.05;
+            particlesMesh.rotation.x = mouseY * 0.1;
+            
+            // Wavy geometry
+            const positions = particlesMesh.geometry.attributes.position.array;
+            for(let i=0; i<particlesCount; i++) {
+                const x = positions[i*3];
+                // Y position moves like a wave
+                positions[i*3+1] = Math.sin(elapsedTime + x * 0.1) * 5 + (Math.random()*0.1); 
+            }
+            particlesMesh.geometry.attributes.position.needsUpdate = true;
+
+            renderer.render(scene, camera);
+            requestAnimationFrame(animate);
+        }
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        animate();
+    </script>
+
+
+     <!-- ================================================== -->
+<!-- GLOBAL COMMS UPLINK V4 (HOLOGRAPHIC NODE) -->
+<!-- ================================================== -->
+
+<style>
+    /* IMPORT FONTS (Ensure visibility) */
+    @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@500;900&display=swap');
+
+    /* --- 1. THE HOLOGRAPHIC TRIGGER --- */
+    #uplink-wrapper {
+        position: fixed; bottom: 40px; right: 40px; z-index: 999999;
+        display: flex; align-items: center; gap: 15px; pointer-events: none; /* Wrapper doesn't block clicks */
+    }
+
+    /* The Status Label (Floating Text) */
+    .uplink-label {
+        background: rgba(0, 0, 0, 0.8); border: 1px solid #00ffaa;
+        color: #00ffaa; font-family: 'Share Tech Mono', monospace; font-size: 10px;
+        padding: 6px 12px; border-radius: 4px; pointer-events: auto;
+        backdrop-filter: blur(10px); letter-spacing: 1px;
+        box-shadow: 0 0 15px rgba(0, 255, 170, 0.1);
+        transform: translateX(10px); opacity: 0; transition: all 0.3s ease;
+    }
+    #uplink-wrapper:hover .uplink-label { opacity: 1; transform: translateX(0); }
+
+    /* The Orb Button */
+    #uplink-btn {
+        width: 70px; height: 70px; cursor: pointer; pointer-events: auto;
+        border-radius: 50%; position: relative;
+        background: radial-gradient(circle at 30% 30%, #222, #000);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.8), inset 0 0 20px rgba(0,255,170,0.1);
+        display: flex; align-items: center; justify-content: center;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    
+    #uplink-btn:hover { 
+        transform: scale(1.1); 
+        border-color: #00ffaa;
+        box-shadow: 0 0 40px rgba(0, 255, 170, 0.4), inset 0 0 30px rgba(0,255,170,0.2);
+    }
+
+    /* Internal Icon */
+    .chat-icon { color: white; transition: 0.3s; filter: drop-shadow(0 0 5px rgba(255,255,255,0.5)); }
+    #uplink-btn:hover .chat-icon { color: #00ffaa; filter: drop-shadow(0 0 8px #00ffaa); }
+
+    /* Pulse Ring Animation */
+    .pulse-emitter {
+        position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+        width: 100%; height: 100%; border-radius: 50%; border: 1px solid #00ffaa;
+        animation: sonarWave 2s infinite; opacity: 0; pointer-events: none;
+    }
+    @keyframes sonarWave { 
+        0% { width: 100%; height: 100%; opacity: 0.8; border-width: 2px; }
+        100% { width: 250%; height: 250%; opacity: 0; border-width: 0px; } 
+    }
+
+
+    /* --- 2. THE COMMAND INTERFACE --- */
+    #uplink-window {
+        position: fixed; bottom: 130px; right: 40px; width: 400px; height: 600px;
+        background: rgba(10, 12, 14, 0.95); 
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-top: 4px solid #00ffaa;
+        z-index: 999999; display: flex; flex-direction: column;
+        transform-origin: bottom right;
+        transform: scale(0.9) translateY(20px); opacity: 0; pointer-events: none;
+        transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+        box-shadow: 0 20px 60px rgba(0,0,0,0.9);
+        border-radius: 12px; overflow: hidden;
+        font-family: 'Share Tech Mono', monospace;
+    }
+    #uplink-window.active { transform: scale(1) translateY(0); opacity: 1; pointer-events: auto; }
+
+    /* Glass & Grain FX */
+    #uplink-window::before {
+        content: ""; position: absolute; inset: 0; pointer-events: none; z-index: -1;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+        opacity: 0.5;
+    }
+    #uplink-window::after {
+        content: ""; position: absolute; inset: 0; pointer-events: none; z-index: -2;
+        backdrop-filter: blur(20px);
+    }
+
+    /* HEADER */
+    .term-header {
+        padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.1);
+        background: linear-gradient(to bottom, rgba(255,255,255,0.05), transparent);
+        display: flex; justify-content: space-between; align-items: center;
+    }
+    .term-brand { font-family: 'Orbitron'; color: white; font-weight: 900; font-size: 14px; letter-spacing: 1px; }
+    .term-signal { 
+        font-size: 10px; color: #00ffaa; display: flex; align-items: center; gap: 6px; 
+        text-shadow: 0 0 10px rgba(0, 255, 170, 0.5);
+    }
+    .signal-bars { display: flex; gap: 2px; align-items: flex-end; height: 10px; }
+    .bar { width: 3px; background: #00ffaa; }
+    .b1 { height: 4px; opacity: 0.4; } .b2 { height: 7px; opacity: 0.7; } .b3 { height: 10px; }
+
+    /* FEED */
+    .term-feed {
+        flex-grow: 1; padding: 20px; overflow-y: auto;
+        display: flex; flex-direction: column; gap: 15px;
+        /* Scanline Background */
+        background: linear-gradient(to bottom, rgba(0,0,0,0) 50%, rgba(0,0,0,0.2) 50%);
+        background-size: 100% 4px;
+    }
+    .term-feed::-webkit-scrollbar { width: 4px; }
+    .term-feed::-webkit-scrollbar-thumb { background: #333; }
+
+    /* MESSAGES */
+    .log-row { font-size: 12px; line-height: 1.5; display: flex; flex-direction: column; }
+    .log-meta { font-size: 9px; color: #555; margin-bottom: 2px; }
+    
+    .sys-msg { color: #00ffaa; text-shadow: 0 0 5px rgba(0, 255, 170, 0.3); }
+    .usr-msg { color: white; text-align: right; align-self: flex-end; background: rgba(255,255,255,0.1); padding: 8px 12px; border-radius: 4px; display: inline-block; border: 1px solid rgba(255,255,255,0.2); }
+
+    /* INPUT */
+    .term-input-area {
+        padding: 20px; border-top: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.6);
+        display: flex; align-items: center; gap: 10px;
+    }
+    .cursor { color: #00ffaa; animation: blink 1s infinite; }
+    .input-cmd {
+        width: 100%; background: transparent; border: none; outline: none;
+        color: white; font-family: 'Share Tech Mono'; font-size: 14px;
+    }
+    .tx-btn {
+        font-size: 10px; color: #00ffaa; border: 1px solid #00ffaa; padding: 5px 10px;
+        cursor: pointer; transition: all 0.2s;
+    }
+    .tx-btn:hover { background: #00ffaa; color: black; }
+
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+    /* MOBILE */
+    @media (max-width: 768px) {
+        #uplink-window { width: 90%; right: 5%; bottom: 110px; height: 60vh; }
+    }
+</style>
+
+<!-- TRIGGER -->
+<div id="uplink-wrapper">
+    <div class="uplink-label">SYSTEM ONLINE</div>
+    <div id="uplink-btn" onclick="window.toggleUplink()">
+        <div class="pulse-emitter"></div>
+        <svg class="chat-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+    </div>
+</div>
+
+<!-- TERMINAL -->
+<div id="uplink-window">
+    <div class="term-header">
+        <div class="term-brand">AVZDAX COMMAND</div>
+        <div class="term-signal">
+            <div class="signal-bars"><div class="bar b1"></div><div class="bar b2"></div><div class="bar b3"></div></div>
+            LINK_ESTABLISHED
+        </div>
+    </div>
+
+    <div class="term-feed" id="console-feed">
+        <div class="log-row">
+            <span class="log-meta">SYS_INIT // [12:01:42]</span>
+            <span class="sys-msg">> ENCRYPTED CHANNEL OPEN.</span>
+        </div>
+    </div>
+
+    <div class="term-input-area">
+        <span class="cursor">></span>
+        <input type="text" id="cmd-input" class="input-cmd" placeholder="ENTER QUERY..." onkeypress="window.handleKey(event)">
+        <div class="tx-btn" onclick="window.transmit()">SEND</div>
+    </div>
+</div>
+
+<!-- LOGIC -->
+<script>
+    (function() {
+        let isOpen = false;
+        const win = document.getElementById('uplink-window');
+        const feed = document.getElementById('console-feed');
+        const input = document.getElementById('cmd-input');
+
+        window.toggleUplink = function() {
+            isOpen = !isOpen;
+            if (isOpen) {
+                win.classList.add('active');
+                if (feed.children.length < 2) {
+                    setTimeout(() => sysType("OPERATOR_04 has joined the session."), 600);
+                    setTimeout(() => sysType("How may we secure your operations?"), 1500);
+                }
+            } else {
+                win.classList.remove('active');
+            }
+        };
+
+        window.handleKey = function(e) {
+            if (e.key === 'Enter') window.transmit();
+        };
+
+        window.transmit = function() {
+            const txt = input.value.trim();
+            if (!txt) return;
+
+            // User Msg
+            addLog(txt, true);
+            input.value = '';
+            feed.scrollTop = feed.scrollHeight;
+
+            // Bot Logic
+            setTimeout(() => {
+                sysType("Processing inquiry...");
+            }, 600);
+            
+            setTimeout(() => {
+                sysType("Your request has been logged. An agent is reviewing your dossier.");
+            }, 2000);
+        };
+
+        // Helper: Add User Log
+        function addLog(text, isUser) {
+            const time = new Date().toLocaleTimeString('en-GB', { hour12: false });
+            const div = document.createElement('div');
+            div.className = 'log-row';
+            
+            if(isUser) {
+                div.innerHTML = `<span class="log-meta" style="text-align:right; color:#666;">USER_ID // [${time}]</span><span class="usr-msg">${text}</span>`;
+            } else {
+                div.innerHTML = `<span class="log-meta">SYS // [${time}]</span><span class="sys-msg">> ${text}</span>`;
+            }
+            feed.appendChild(div);
+        }
+
+        // Helper: Typewriter Effect for System
+        function sysType(text) {
+            const time = new Date().toLocaleTimeString('en-GB', { hour12: false });
+            const div = document.createElement('div');
+            div.className = 'log-row';
+            div.innerHTML = `<span class="log-meta">SYS // [${time}]</span><span class="sys-msg"></span>`;
+            feed.appendChild(div);
+            
+            const span = div.querySelector('.sys-msg');
+            let i = 0;
+            span.innerText = "> ";
+            
+            function type() {
+                if (i < text.length) {
+                    span.innerText += text.charAt(i);
+                    i++;
+                    feed.scrollTop = feed.scrollHeight;
+                    setTimeout(type, 20);
+                }
+            }
+            type();
+        }
+    })();
+</script>
+</body>
+</html>

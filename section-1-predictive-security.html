@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AVZDAX | COMPETITION ENTRY</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* --- 1. BASE SETTINGS --- */
+        body { 
+            margin: 0; 
+            overflow: hidden; 
+            background-color: #000000; 
+            font-family: 'Courier New', Courier, monospace; /* Fallback */
+            cursor: none; /* Hide default cursor for custom one */
+        }
+        canvas { display: block; }
+        
+        /* --- 2. CUSTOM FONTS (Simulated High-End) --- */
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&display=swap');
+        .font-space { font-family: 'Space Grotesk', sans-serif; }
+
+        /* --- 3. UI GLASS & BORDERS --- */
+        .hud-panel {
+            background: rgba(15, 15, 15, 0.6);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(255, 255, 255, 0.3);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* --- 4. CINEMATIC SCANLINE --- */
+        .scanline {
+            width: 100%;
+            height: 10px;
+            background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.1), transparent);
+            position: absolute;
+            top: 0;
+            left: 0;
+            animation: scan 8s linear infinite;
+            pointer-events: none;
+            z-index: 40;
+        }
+        @keyframes scan { 0% { top: -10%; } 100% { top: 110%; } }
+
+        /* --- 5. CUSTOM CURSOR --- */
+        #cursor {
+            width: 20px; height: 20px;
+            border: 1px solid white;
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 100;
+            transform: translate(-50%, -50%);
+            transition: width 0.2s, height 0.2s, background 0.2s;
+            mix-blend-mode: difference;
+        }
+        #cursor.hovered {
+            width: 50px; height: 50px;
+            background: white;
+            border-color: transparent;
+            opacity: 0.5;
+        }
+
+        /* --- 6. TEXT GLITCH ANIMATION --- */
+        .glitch-text { position: relative; }
+        .glitch-text::before, .glitch-text::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #000;
+        }
+        .glitch-text::before {
+            left: 2px;
+            text-shadow: -1px 0 #ff00c1;
+            clip: rect(44px, 450px, 56px, 0);
+            animation: glitch-anim 5s infinite linear alternate-reverse;
+        }
+        .glitch-text::after {
+            left: -2px;
+            text-shadow: -1px 0 #00fff9;
+            clip: rect(44px, 450px, 56px, 0);
+            animation: glitch-anim2 5s infinite linear alternate-reverse;
+        }
+        @keyframes glitch-anim {
+            0% { clip: rect(12px, 9999px, 32px, 0); }
+            20% { clip: rect(64px, 9999px, 10px, 0); }
+            40% { clip: rect(20px, 9999px, 88px, 0); }
+            60% { clip: rect(2px, 9999px, 50px, 0); }
+            80% { clip: rect(80px, 9999px, 4px, 0); }
+            100% { clip: rect(30px, 9999px, 66px, 0); }
+        }
+        @keyframes glitch-anim2 {
+            0% { clip: rect(60px, 9999px, 10px, 0); }
+            20% { clip: rect(2px, 9999px, 30px, 0); }
+            40% { clip: rect(40px, 9999px, 10px, 0); }
+            60% { clip: rect(80px, 9999px, 5px, 0); }
+            80% { clip: rect(10px, 9999px, 40px, 0); }
+            100% { clip: rect(50px, 9999px, 20px, 0); }
+        }
+    </style>
+</head>
+<body class="font-space text-white antialiased">
+
+    <!-- CUSTOM CURSOR -->
+    <div id="cursor"></div>
+
+    <!-- BACKGROUND 3D -->
+    <div id="canvas-container" class="absolute inset-0 z-0"></div>
+
+    <!-- OVERLAY EFFECTS -->
+    <div class="scanline"></div>
+    <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,#000000_140%)] z-10 pointer-events-none"></div>
+    <div class="absolute inset-0 z-10 pointer-events-none opacity-[0.07]" style="background-image: url('https://grainy-gradients.vercel.app/noise.svg');"></div>
+
+    <!-- UI CONTAINER -->
+    <div class="relative z-20 h-screen flex flex-col justify-between p-8 md:p-16 overflow-hidden">
+        
+        <!-- HEADER -->
+        <div class="flex justify-between items-start">
+            <div class="flex flex-col">
+                <div class="text-2xl font-bold tracking-tighter mix-blend-difference"></div>
+                <div class="text-[10px] text-gray-500 tracking-[0.3em] uppercase mt-1 scramble-target"></div>
+            </div>
+        </div>
+
+        <!-- HERO CENTER -->
+        <div class="flex flex-col justify-center max-w-6xl">
+            <h1 class="text-6xl md:text-9xl font-bold tracking-tighter leading-[0.9] mix-blend-difference">
+                <span class="block scramble-target" data-value="PREDICTIVE">PREDICTIVE</span>
+                <span class="block text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-500 to-gray-900 glitch-text" data-text="SECURITY">
+                    SECURITY
+                </span>
+            </h1>
+            
+            <div class="mt-10 flex flex-col md:flex-row items-start md:items-center gap-12">
+                <p class="text-gray-400 text-sm md:text-lg max-w-md leading-relaxed border-l border-white/20 pl-6 scramble-target" data-value="Transitioning the world from reactive surveillance to proactive intelligence.">
+                    Transitioning the world from reactive surveillance to proactive intelligence.
+                </p>
+                
+                <button class="hover-trigger group relative px-10 py-5 border border-white/30 overflow-hidden bg-transparent">
+                    <div class="absolute inset-0 w-full h-full bg-white transform translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-500 cubic-bezier(0.19, 1, 0.22, 1)"></div>
+                    <span class="relative z-10 text-xs font-bold tracking-[0.2em] group-hover:text-black transition-colors duration-300">INITIALIZE SYSTEM</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- FOOTER HUD -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 w-full">
+            <div class="hud-panel p-4">
+                <div class="text-[9px] text-gray-500 uppercase tracking-widest mb-1">Status</div>
+                <div class="text-lg font-mono text-green-400 scramble-target" data-value="ONLINE">ONLINE</div>
+            </div>
+            <div class="hud-panel p-4">
+                <div class="text-[9px] text-gray-500 uppercase tracking-widest mb-1">Threats Blocked</div>
+                <div class="text-lg font-mono scramble-target" data-value="14,092">14,092</div>
+            </div>
+            <div class="hud-panel p-4 md:col-span-2 flex items-center justify-between">
+                <div class="text-[9px] text-gray-500 uppercase tracking-widest">Next Gen Peace-Tech</div>
+                <div class="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- THREE.JS & ANIMATION LOGIC -->
+    <script type="module">
+        import * as THREE from 'https://unpkg.com/three@0.160.0/build/three.module.js';
+        
+        // --- 1. TEXT SCRAMBLE EFFECT (THE "HACKER" LOOK) ---
+        class TextScramble {
+            constructor(el) {
+                this.el = el;
+                this.chars = '!<>-_\\/[]{}—=+*^?#________';
+                this.update = this.update.bind(this);
+            }
+            setText(newText) {
+                const oldText = this.el.innerText;
+                const length = Math.max(oldText.length, newText.length);
+                const promise = new Promise((resolve) => this.resolve = resolve);
+                this.queue = [];
+                for (let i = 0; i < length; i++) {
+                    const from = oldText[i] || '';
+                    const to = newText[i] || '';
+                    const start = Math.floor(Math.random() * 40);
+                    const end = start + Math.floor(Math.random() * 40);
+                    this.queue.push({ from, to, start, end });
+                }
+                cancelAnimationFrame(this.frameRequest);
+                this.frame = 0;
+                this.update();
+                return promise;
+            }
+            update() {
+                let output = '';
+                let complete = 0;
+                for (let i = 0, n = this.queue.length; i < n; i++) {
+                    let { from, to, start, end, char } = this.queue[i];
+                    if (this.frame >= end) {
+                        complete++;
+                        output += to;
+                    } else if (this.frame >= start) {
+                        if (!char || Math.random() < 0.28) {
+                            char = this.randomChar();
+                            this.queue[i].char = char;
+                        }
+                        output += `<span class="text-gray-600">${char}</span>`;
+                    } else {
+                        output += from;
+                    }
+                }
+                this.el.innerHTML = output;
+                if (complete === this.queue.length) {
+                    this.resolve();
+                } else {
+                    this.frameRequest = requestAnimationFrame(this.update);
+                    this.frame++;
+                }
+            }
+            randomChar() {
+                return this.chars[Math.floor(Math.random() * this.chars.length)];
+            }
+        }
+
+        // Initialize Scramble on Load
+        const phrases = document.querySelectorAll('.scramble-target');
+        phrases.forEach(el => {
+            const fx = new TextScramble(el);
+            // Slight delay for dramatic effect
+            setTimeout(() => {
+                fx.setText(el.getAttribute('data-value') || el.innerText);
+            }, 500);
+        });
+
+
+        // --- 2. CUSTOM CURSOR LOGIC ---
+        const cursor = document.getElementById('cursor');
+        const triggers = document.querySelectorAll('.hover-trigger');
+        
+        document.addEventListener('mousemove', (e) => {
+            cursor.style.left = e.clientX + 'px';
+            cursor.style.top = e.clientY + 'px';
+        });
+
+        triggers.forEach(trigger => {
+            trigger.addEventListener('mouseenter', () => cursor.classList.add('hovered'));
+            trigger.addEventListener('mouseleave', () => cursor.classList.remove('hovered'));
+        });
+
+
+        // --- 3. THREE.JS HIGH-FIDELITY SCENE ---
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color('#000000');
+        scene.fog = new THREE.FogExp2('#000000', 0.03);
+
+        const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
+        camera.position.z = 7;
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        container.appendChild(renderer.domElement);
+
+        // LIGHTS
+        const light1 = new THREE.DirectionalLight(0xffffff, 2);
+        light1.position.set(2, 2, 5);
+        scene.add(light1);
+        const light2 = new THREE.PointLight(0x4444ff, 2); // Subtle blue hint for depth
+        light2.position.set(-5, -2, -5);
+        scene.add(light2);
+
+        // OBJECTS: The "Black Box" Intelligence
+        const group = new THREE.Group();
+        scene.add(group);
+
+        // 1. The Wireframe Shell
+        const geo1 = new THREE.IcosahedronGeometry(2.2, 1);
+        const mat1 = new THREE.MeshBasicMaterial({ color: 0x444444, wireframe: true, transparent: true, opacity: 0.3 });
+        const wireframe = new THREE.Mesh(geo1, mat1);
+        group.add(wireframe);
+
+        // 2. The Obsidian Core
+        const geo2 = new THREE.IcosahedronGeometry(2.0, 0);
+        const mat2 = new THREE.MeshPhysicalMaterial({
+            color: 0x000000,
+            metalness: 0.9,
+            roughness: 0.1,
+            clearcoat: 1.0,
+            clearcoatRoughness: 0.1
+        });
+        const core = new THREE.Mesh(geo2, mat2);
+        group.add(core);
+
+        // 3. Floating Data Points
+        const particlesGeo = new THREE.BufferGeometry();
+        const particlesCount = 600;
+        const posArray = new Float32Array(particlesCount * 3);
+        for(let i=0; i<particlesCount*3; i++) posArray[i] = (Math.random() - 0.5) * 12;
+        particlesGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+        const particlesMat = new THREE.PointsMaterial({ size: 0.01, color: 0xffffff });
+        const starfield = new THREE.Points(particlesGeo, particlesMat);
+        scene.add(starfield);
+
+        // ANIMATION LOOP
+        let mouseX = 0;
+        let mouseY = 0;
+        let targetRotationX = 0;
+        let targetRotationY = 0;
+
+        document.addEventListener('mousemove', (event) => {
+            mouseX = (event.clientX - window.innerWidth / 2) * 0.001;
+            mouseY = (event.clientY - window.innerHeight / 2) * 0.001;
+        });
+
+        const clock = new THREE.Clock();
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const time = clock.getElapsedTime();
+
+            // Smooth Camera Parallax
+            targetRotationX = mouseY * 2;
+            targetRotationY = mouseX * 2;
+            
+            group.rotation.y += 0.005 + (targetRotationY - group.rotation.y) * 0.05;
+            group.rotation.x += 0.002 + (targetRotationX - group.rotation.x) * 0.05;
+
+            // "Breathing" Distortion Effect
+            const distort = 1 + Math.sin(time * 2) * 0.02;
+            wireframe.scale.setScalar(distort);
+            
+            // Aggressive Glitch on fast mouse movement (Simulated)
+            if(Math.abs(mouseX) > 0.4) {
+               wireframe.rotation.z += 0.1; // Spin faster
+               wireframe.material.color.setHex(0xffffff); // Flash white
+            } else {
+               wireframe.material.color.setHex(0x444444); // Return to grey
+            }
+
+            starfield.rotation.y = time * 0.05;
+
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>

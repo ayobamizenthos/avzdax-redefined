@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AVZDAX | RECRUITMENT</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Rajdhani:wght@500;700&family=Share+Tech+Mono&display=swap');
+
+        body { 
+            margin: 0; background-color: #000; color: #e5e5e5; 
+            font-family: 'Rajdhani', sans-serif; overflow-x: hidden;
+        }
+
+        /* --- BACKGROUND --- */
+        #canvas-container { position: fixed; inset: 0; z-index: -1; }
+        .overlay { position: fixed; inset: 0; background: radial-gradient(circle at 50% 50%, transparent 20%, #000 100%); z-index: 0; pointer-events: none; }
+
+        /* --- TYPOGRAPHY --- */
+        .super-header {
+            font-family: 'Syncopate', sans-serif; font-weight: 700;
+            font-size: clamp(3rem, 8vw, 9rem); line-height: 0.9;
+            color: transparent; -webkit-text-stroke: 1px rgba(255,255,255,0.8);
+            text-transform: uppercase; mix-blend-mode: difference;
+            animation: pulseText 5s infinite alternate;
+        }
+        
+        .sub-header {
+            font-family: 'Share Tech Mono'; color: #00ffaa; font-size: 14px; 
+            letter-spacing: 6px; margin-bottom: 20px; text-transform: uppercase;
+            display: inline-block; border-bottom: 1px solid #00ffaa; padding-bottom: 5px;
+        }
+
+        /* --- LAYOUT --- */
+        .container { max-width: 1400px; margin: 0 auto; padding: 120px 20px; position: relative; z-index: 10; }
+        
+        /* --- CULTURE GRID --- */
+        .culture-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2px; background: #222; border: 1px solid #222; margin: 100px 0; }
+        .culture-card {
+            background: #050505; padding: 50px 30px; position: relative; overflow: hidden;
+            transition: all 0.3s;
+        }
+        .culture-card:hover { background: #0a0a0a; }
+        .culture-card::before {
+            content:''; position: absolute; top: 0; left: 0; width: 100%; height: 2px;
+            background: #00ffaa; transform: scaleX(0); transform-origin: left; transition: transform 0.4s;
+        }
+        .culture-card:hover::before { transform: scaleX(1); }
+
+        .cult-icon { font-family: 'Share Tech Mono'; font-size: 40px; color: #333; margin-bottom: 20px; }
+        .culture-card:hover .cult-icon { color: #00ffaa; }
+
+        /* --- JOB LISTINGS (CONTRACTS) --- */
+        .contract-row {
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1); padding: 40px 0;
+            transition: all 0.3s; cursor: pointer; position: relative;
+        }
+        .contract-row:hover { padding-left: 20px; border-color: #00ffaa; background: rgba(0,255,170,0.02); }
+        
+        .role-title { font-family: 'Orbitron', sans-serif; font-size: 2rem; font-weight: 700; color: white; }
+        .role-meta { font-family: 'Share Tech Mono'; color: #666; font-size: 12px; letter-spacing: 2px; margin-top: 5px; }
+        .role-action { 
+            font-family: 'Share Tech Mono'; color: #00ffaa; border: 1px solid #00ffaa; 
+            padding: 10px 20px; opacity: 0; transform: translateX(20px); transition: all 0.3s;
+        }
+        .contract-row:hover .role-action { opacity: 1; transform: translateX(0); }
+
+        /* --- FX --- */
+        @keyframes pulseText { 0% { opacity: 0.8; } 100% { opacity: 1; text-shadow: 0 0 30px rgba(255,255,255,0.5); } }
+    </style>
+</head>
+<body>
+    <!-- GLOBAL NAVIGATION BAR 
+<!-- -->
+<style>
+    .nav-layer {
+        position: fixed; top: 0; left: 0; width: 100%; height: 80px;
+        z-index: 9999; display: flex; justify-content: space-between; align-items: center;
+        padding: 0 5vw; pointer-events: none; mix-blend-mode: exclusion;
+        background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent); /* Subtle shade for readability */
+    }
+
+    .brand {
+        font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 1.5rem; color: white;
+        pointer-events: auto; text-decoration: none; letter-spacing: 2px;
+    }
+    
+    .menu { display: flex; gap: 30px; pointer-events: auto; }
+    
+    .menu-item {
+        font-family: 'Share Tech Mono', monospace;
+        color: white; text-decoration: none; font-size: 12px; letter-spacing: 2px;
+        position: relative; transition: color 0.3s; font-weight: 700; cursor: pointer;
+    }
+    .menu-item::after {
+        content: ''; position: absolute; bottom: -5px; left: 0; width: 0%; height: 1px;
+        background: #00ffaa; transition: width 0.3s;
+    }
+    .menu-item:hover { color: #00ffaa; }
+    .menu-item:hover::after { width: 100%; }
+    
+    /* Mobile Menu Fix */
+    @media (max-width: 768px) {
+        .menu { display: none; } /* Hide on mobile for now or add hamburger logic */
+        .nav-layer { justify-content: center; }
+    }
+</style>
+
+<nav class="nav-layer">
+    <!-- Brand Logo links back to Home -->
+    <a href="index.html" class="brand">AVZDAX</a>
+    
+    <div class="menu">
+        <!-- Direct links to all files -->
+        <a class="menu-item" href="index.html">INTELLIGENCE</a>
+        <a class="menu-item" href="about.html">MISSION</a>
+        <a class="menu-item" href="products.html">PRODUCTS</a>
+        <a class="menu-item" href="industries.html">INDUSTRIES</a>
+        <a class="menu-item" href="newsroom.html">NEWSROOM</a>
+        <a class="menu-item" href="careers.html">CAREERS</a>
+        <a class="menu-item" href="contact.html">CONTACT</a>
+    </div>
+</nav>
+<!-- ================================================== -->
+
+<!-- ================================================== -->
+<!-- TACTICAL RETURN NODE (PASTE AFTER <BODY>) -->
+<!-- ================================================== -->
+<style>
+    .return-node {
+        position: fixed; top: 110px; left: 5vw; z-index: 8000;
+        display: flex; align-items: center; gap: 15px;
+        cursor: pointer; pointer-events: auto; text-decoration: none;
+    }
+
+    /* The Circle Container */
+    .node-circle {
+        width: 45px; height: 45px;
+        border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(10px);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    /* The Arrow Icon */
+    .node-arrow {
+        width: 18px; height: 18px; stroke: #888; stroke-width: 2; fill: none;
+        transition: all 0.3s ease;
+    }
+
+    /* The Text Label (Hidden until hover) */
+    .node-label {
+        font-family: 'Share Tech Mono', monospace; font-size: 11px; color: #00ffaa;
+        letter-spacing: 2px; text-transform: uppercase;
+        opacity: 0; transform: translateX(-10px);
+        transition: all 0.3s ease-out;
+    }
+
+    /* --- HOVER EFFECTS --- */
+    .return-node:hover .node-circle {
+        border-color: #00ffaa;
+        box-shadow: 0 0 20px rgba(0, 255, 170, 0.2);
+        transform: scale(1.1);
+    }
+    
+    .return-node:hover .node-arrow {
+        stroke: #00ffaa;
+        transform: translateX(-3px); /* Arrow pulls back visually */
+    }
+
+    .return-node:hover .node-label {
+        opacity: 1;
+        transform: translateX(0);
+    }
+</style>
+
+<a href="index.html" class="return-node">
+    <div class="node-circle">
+        <svg class="node-arrow" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+    </div>
+    <div class="node-label">RETURN TO BASE</div>
+</a>
+<!-- ================================================== -->
+
+
+
+    <div id="canvas-container"></div>
+    <div class="overlay"></div>
+
+    <div class="container">
+        
+        <!-- HEADER -->
+        <div class="text-center">
+            <div class="sub-header">PERSONNEL ACQUISITION</div>
+            <h1 class="super-header">JOIN THE<br>VANGUARD</h1>
+            <p class="text-xl text-gray-400 mt-8 max-w-2xl mx-auto leading-relaxed font-light">
+                We do not hire employees. We recruit Architects of Order. 
+                If you want to build the code that secures a continent, <span class="text-white font-bold">initialize your clearance below.</span>
+            </p>
+        </div>
+
+        <!-- CULTURE (PERKS) -->
+        <div class="culture-grid">
+            <div class="culture-card">
+                <div class="cult-icon">01</div>
+                <h3 class="text-2xl font-bold text-white mb-2 font-orbitron">HIGH IMPACT</h3>
+                <p class="text-gray-500 text-sm">Your code doesn't just run on servers. It runs on borders, banks, and critical infrastructure. You save lives.</p>
+            </div>
+            <div class="culture-card">
+                <div class="cult-icon">02</div>
+                <h3 class="text-2xl font-bold text-white mb-2 font-orbitron">DEEP TECH</h3>
+                <p class="text-gray-500 text-sm">Access to military-grade compute, proprietary datasets, and the bleeding edge of Computer Vision R&D.</p>
+            </div>
+            <div class="culture-card">
+                <div class="cult-icon">03</div>
+                <h3 class="text-2xl font-bold text-white mb-2 font-orbitron">ELITE SQUAD</h3>
+                <p class="text-gray-500 text-sm">Work alongside ex-intelligence officers, PhD mathematicians, and world-class hardware engineers.</p>
+            </div>
+        </div>
+
+        <!-- OPEN CONTRACTS -->
+        <div class="mt-32">
+            <div class="flex items-end justify-between mb-10 border-b border-gray-800 pb-4">
+                <h2 class="text-4xl font-bold text-white font-syncopate">ACTIVE CONTRACTS</h2>
+                <div class="text-[#00ffaa] font-mono text-xs animate-pulse">● RECRUITING NOW</div>
+            </div>
+
+            <!-- JOB 1 -->
+            <div class="contract-row group">
+                <div>
+                    <div class="role-title">SENIOR AI ENGINEER</div>
+                    <div class="role-meta">DIVISION: PRIMUS // LOC: LAGOS/REMOTE // CLEARANCE: L4</div>
+                </div>
+                <button class="role-action" onclick="window.location.href='support.html'">INITIATE CLEARANCE</button>
+            </div>
+
+            <!-- JOB 2 -->
+            <div class="contract-row group">
+                <div>
+                    <div class="role-title">EMBEDDED SYSTEMS LEAD</div>
+                    <div class="role-meta">DIVISION: TRION HARDWARE // LOC: IKOYI // CLEARANCE: L5</div>
+                </div>
+                <button class="role-action" onclick="window.location.href='support.html'">INITIATE CLEARANCE</button>
+            </div>
+
+            <!-- JOB 3 -->
+            <div class="contract-row group">
+                <div>
+                    <div class="role-title">FULL STACK ARCHITECT</div>
+                    <div class="role-meta">DIVISION: TELETRAAN OS // LOC: REMOTE // CLEARANCE: L3</div>
+                </div>
+                <button class="role-action" onclick="window.location.href='support.html'">INITIATE CLEARANCE</button>
+            </div>
+
+            <!-- JOB 4 -->
+            <div class="contract-row group">
+                <div>
+                    <div class="role-title">INTELLIGENCE ANALYST</div>
+                    <div class="role-meta">DIVISION: NEST COMMAND // LOC: ABUJA // CLEARANCE: L2</div>
+                </div>
+                <button class="role-action" onclick="window.location.href='support.html'">INITIATE CLEARANCE</button>
+            </div>
+
+            <!-- JOB 5 -->
+            <div class="contract-row group">
+                <div>
+                    <div class="role-title">FELLOWSHIP / INTERNSHIP</div>
+                    <div class="role-meta">DIVISION: NEST COMMAND // LOC: ABUJA // CLEARANCE: L2</div>
+                </div>
+                <button class="role-action" onclick="window.location.href='support.html'">INITIATE CLEARANCE</button>
+            </div>
+
+        </div>
+
+        <!-- FOOTER CALL -->
+        <div class="mt-40 text-center">
+            <div class="text-gray-500 font-mono text-xs mb-4">DONT SEE YOUR ROLE?</div>
+            <a href="contact.html" class="inline-block border border-white/30 px-10 py-4 text-white font-bold tracking-widest hover:bg-white hover:text-black transition-all">
+                SUBMIT OPEN APPLICATION
+            </a>
+        </div>
+
+    </div>
+
+    <!-- THREE.JS NETWORK -->
+    <script>
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        // No background color, let CSS handle gradient
+        scene.fog = new THREE.FogExp2(0x000000, 0.002);
+
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 50;
+
+        const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        container.appendChild(renderer.domElement);
+
+        // GEOMETRY: The Network (Plexus)
+        const particleCount = 300;
+        const particles = new THREE.BufferGeometry();
+        const pPos = new Float32Array(particleCount * 3);
+        const pVel = [];
+
+        for(let i=0; i<particleCount * 3; i++) {
+            pPos[i] = (Math.random() - 0.5) * 100;
+            if(i % 3 === 0) pVel.push({ x: (Math.random()-0.5)*0.1, y: (Math.random()-0.5)*0.1, z: (Math.random()-0.5)*0.1 });
+        }
+
+        particles.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
+        const pMat = new THREE.PointsMaterial({ color: 0x00ffaa, size: 0.3, transparent: true, opacity: 0.8 });
+        const particleSystem = new THREE.Points(particles, pMat);
+        scene.add(particleSystem);
+
+        // Lines
+        const lineMat = new THREE.LineBasicMaterial({ color: 0x00ffaa, transparent: true, opacity: 0.15 });
+        const linesGeo = new THREE.BufferGeometry();
+        const lines = new THREE.LineSegments(linesGeo, lineMat);
+        scene.add(lines);
+
+        // ANIMATION
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            const positions = particleSystem.geometry.attributes.position.array;
+            const linePositions = [];
+
+            // Move Particles
+            for(let i=0; i<particleCount; i++) {
+                positions[i*3] += pVel[i].x;
+                positions[i*3+1] += pVel[i].y;
+                positions[i*3+2] += pVel[i].z;
+
+                // Bounce off walls
+                if(Math.abs(positions[i*3]) > 50) pVel[i].x *= -1;
+                if(Math.abs(positions[i*3+1]) > 50) pVel[i].y *= -1;
+                if(Math.abs(positions[i*3+2]) > 50) pVel[i].z *= -1;
+
+                // Check connections
+                for(let j=i+1; j<particleCount; j++) {
+                    const dx = positions[i*3] - positions[j*3];
+                    const dy = positions[i*3+1] - positions[j*3+1];
+                    const dz = positions[i*3+2] - positions[j*3+2];
+                    const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
+
+                    if (dist < 12) {
+                        linePositions.push(
+                            positions[i*3], positions[i*3+1], positions[i*3+2],
+                            positions[j*3], positions[j*3+1], positions[j*3+2]
+                        );
+                    }
+                }
+            }
+            
+            particleSystem.geometry.attributes.position.needsUpdate = true;
+            lines.geometry.setAttribute('position', new THREE.Float32BufferAttribute(linePositions, 3));
+
+            // Rotate whole system
+            particleSystem.rotation.y += 0.001;
+            lines.rotation.y += 0.001;
+
+            renderer.render(scene, camera);
+        }
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        animate();
+    </script>
+
+ <!-- ================================================== -->
+<!-- GLOBAL COMMS UPLINK V4 (HOLOGRAPHIC NODE) -->
+<!-- ================================================== -->
+
+<style>
+    /* IMPORT FONTS (Ensure visibility) */
+    @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@500;900&display=swap');
+
+    /* --- 1. THE HOLOGRAPHIC TRIGGER --- */
+    #uplink-wrapper {
+        position: fixed; bottom: 40px; right: 40px; z-index: 999999;
+        display: flex; align-items: center; gap: 15px; pointer-events: none; /* Wrapper doesn't block clicks */
+    }
+
+    /* The Status Label (Floating Text) */
+    .uplink-label {
+        background: rgba(0, 0, 0, 0.8); border: 1px solid #00ffaa;
+        color: #00ffaa; font-family: 'Share Tech Mono', monospace; font-size: 10px;
+        padding: 6px 12px; border-radius: 4px; pointer-events: auto;
+        backdrop-filter: blur(10px); letter-spacing: 1px;
+        box-shadow: 0 0 15px rgba(0, 255, 170, 0.1);
+        transform: translateX(10px); opacity: 0; transition: all 0.3s ease;
+    }
+    #uplink-wrapper:hover .uplink-label { opacity: 1; transform: translateX(0); }
+
+    /* The Orb Button */
+    #uplink-btn {
+        width: 70px; height: 70px; cursor: pointer; pointer-events: auto;
+        border-radius: 50%; position: relative;
+        background: radial-gradient(circle at 30% 30%, #222, #000);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.8), inset 0 0 20px rgba(0,255,170,0.1);
+        display: flex; align-items: center; justify-content: center;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    
+    #uplink-btn:hover { 
+        transform: scale(1.1); 
+        border-color: #00ffaa;
+        box-shadow: 0 0 40px rgba(0, 255, 170, 0.4), inset 0 0 30px rgba(0,255,170,0.2);
+    }
+
+    /* Internal Icon */
+    .chat-icon { color: white; transition: 0.3s; filter: drop-shadow(0 0 5px rgba(255,255,255,0.5)); }
+    #uplink-btn:hover .chat-icon { color: #00ffaa; filter: drop-shadow(0 0 8px #00ffaa); }
+
+    /* Pulse Ring Animation */
+    .pulse-emitter {
+        position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+        width: 100%; height: 100%; border-radius: 50%; border: 1px solid #00ffaa;
+        animation: sonarWave 2s infinite; opacity: 0; pointer-events: none;
+    }
+    @keyframes sonarWave { 
+        0% { width: 100%; height: 100%; opacity: 0.8; border-width: 2px; }
+        100% { width: 250%; height: 250%; opacity: 0; border-width: 0px; } 
+    }
+
+
+    /* --- 2. THE COMMAND INTERFACE --- */
+    #uplink-window {
+        position: fixed; bottom: 130px; right: 40px; width: 400px; height: 600px;
+        background: rgba(10, 12, 14, 0.95); 
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-top: 4px solid #00ffaa;
+        z-index: 999999; display: flex; flex-direction: column;
+        transform-origin: bottom right;
+        transform: scale(0.9) translateY(20px); opacity: 0; pointer-events: none;
+        transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+        box-shadow: 0 20px 60px rgba(0,0,0,0.9);
+        border-radius: 12px; overflow: hidden;
+        font-family: 'Share Tech Mono', monospace;
+    }
+    #uplink-window.active { transform: scale(1) translateY(0); opacity: 1; pointer-events: auto; }
+
+    /* Glass & Grain FX */
+    #uplink-window::before {
+        content: ""; position: absolute; inset: 0; pointer-events: none; z-index: -1;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+        opacity: 0.5;
+    }
+    #uplink-window::after {
+        content: ""; position: absolute; inset: 0; pointer-events: none; z-index: -2;
+        backdrop-filter: blur(20px);
+    }
+
+    /* HEADER */
+    .term-header {
+        padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.1);
+        background: linear-gradient(to bottom, rgba(255,255,255,0.05), transparent);
+        display: flex; justify-content: space-between; align-items: center;
+    }
+    .term-brand { font-family: 'Orbitron'; color: white; font-weight: 900; font-size: 14px; letter-spacing: 1px; }
+    .term-signal { 
+        font-size: 10px; color: #00ffaa; display: flex; align-items: center; gap: 6px; 
+        text-shadow: 0 0 10px rgba(0, 255, 170, 0.5);
+    }
+    .signal-bars { display: flex; gap: 2px; align-items: flex-end; height: 10px; }
+    .bar { width: 3px; background: #00ffaa; }
+    .b1 { height: 4px; opacity: 0.4; } .b2 { height: 7px; opacity: 0.7; } .b3 { height: 10px; }
+
+    /* FEED */
+    .term-feed {
+        flex-grow: 1; padding: 20px; overflow-y: auto;
+        display: flex; flex-direction: column; gap: 15px;
+        /* Scanline Background */
+        background: linear-gradient(to bottom, rgba(0,0,0,0) 50%, rgba(0,0,0,0.2) 50%);
+        background-size: 100% 4px;
+    }
+    .term-feed::-webkit-scrollbar { width: 4px; }
+    .term-feed::-webkit-scrollbar-thumb { background: #333; }
+
+    /* MESSAGES */
+    .log-row { font-size: 12px; line-height: 1.5; display: flex; flex-direction: column; }
+    .log-meta { font-size: 9px; color: #555; margin-bottom: 2px; }
+    
+    .sys-msg { color: #00ffaa; text-shadow: 0 0 5px rgba(0, 255, 170, 0.3); }
+    .usr-msg { color: white; text-align: right; align-self: flex-end; background: rgba(255,255,255,0.1); padding: 8px 12px; border-radius: 4px; display: inline-block; border: 1px solid rgba(255,255,255,0.2); }
+
+    /* INPUT */
+    .term-input-area {
+        padding: 20px; border-top: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.6);
+        display: flex; align-items: center; gap: 10px;
+    }
+    .cursor { color: #00ffaa; animation: blink 1s infinite; }
+    .input-cmd {
+        width: 100%; background: transparent; border: none; outline: none;
+        color: white; font-family: 'Share Tech Mono'; font-size: 14px;
+    }
+    .tx-btn {
+        font-size: 10px; color: #00ffaa; border: 1px solid #00ffaa; padding: 5px 10px;
+        cursor: pointer; transition: all 0.2s;
+    }
+    .tx-btn:hover { background: #00ffaa; color: black; }
+
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+    /* MOBILE */
+    @media (max-width: 768px) {
+        #uplink-window { width: 90%; right: 5%; bottom: 110px; height: 60vh; }
+    }
+</style>
+
+<!-- TRIGGER -->
+<div id="uplink-wrapper">
+    <div class="uplink-label">SYSTEM ONLINE</div>
+    <div id="uplink-btn" onclick="window.toggleUplink()">
+        <div class="pulse-emitter"></div>
+        <svg class="chat-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+    </div>
+</div>
+
+<!-- TERMINAL -->
+<div id="uplink-window">
+    <div class="term-header">
+        <div class="term-brand">AVZDAX COMMAND</div>
+        <div class="term-signal">
+            <div class="signal-bars"><div class="bar b1"></div><div class="bar b2"></div><div class="bar b3"></div></div>
+            LINK_ESTABLISHED
+        </div>
+    </div>
+
+    <div class="term-feed" id="console-feed">
+        <div class="log-row">
+            <span class="log-meta">SYS_INIT // [12:01:42]</span>
+            <span class="sys-msg">> ENCRYPTED CHANNEL OPEN.</span>
+        </div>
+    </div>
+
+    <div class="term-input-area">
+        <span class="cursor">></span>
+        <input type="text" id="cmd-input" class="input-cmd" placeholder="ENTER QUERY..." onkeypress="window.handleKey(event)">
+        <div class="tx-btn" onclick="window.transmit()">SEND</div>
+    </div>
+</div>
+
+<!-- LOGIC -->
+<script>
+    (function() {
+        let isOpen = false;
+        const win = document.getElementById('uplink-window');
+        const feed = document.getElementById('console-feed');
+        const input = document.getElementById('cmd-input');
+
+        window.toggleUplink = function() {
+            isOpen = !isOpen;
+            if (isOpen) {
+                win.classList.add('active');
+                if (feed.children.length < 2) {
+                    setTimeout(() => sysType("OPERATOR_04 has joined the session."), 600);
+                    setTimeout(() => sysType("How may we secure your operations?"), 1500);
+                }
+            } else {
+                win.classList.remove('active');
+            }
+        };
+
+        window.handleKey = function(e) {
+            if (e.key === 'Enter') window.transmit();
+        };
+
+        window.transmit = function() {
+            const txt = input.value.trim();
+            if (!txt) return;
+
+            // User Msg
+            addLog(txt, true);
+            input.value = '';
+            feed.scrollTop = feed.scrollHeight;
+
+            // Bot Logic
+            setTimeout(() => {
+                sysType("Processing inquiry...");
+            }, 600);
+            
+            setTimeout(() => {
+                sysType("Your request has been logged. An agent is reviewing your dossier.");
+            }, 2000);
+        };
+
+        // Helper: Add User Log
+        function addLog(text, isUser) {
+            const time = new Date().toLocaleTimeString('en-GB', { hour12: false });
+            const div = document.createElement('div');
+            div.className = 'log-row';
+            
+            if(isUser) {
+                div.innerHTML = `<span class="log-meta" style="text-align:right; color:#666;">USER_ID // [${time}]</span><span class="usr-msg">${text}</span>`;
+            } else {
+                div.innerHTML = `<span class="log-meta">SYS // [${time}]</span><span class="sys-msg">> ${text}</span>`;
+            }
+            feed.appendChild(div);
+        }
+
+        // Helper: Typewriter Effect for System
+        function sysType(text) {
+            const time = new Date().toLocaleTimeString('en-GB', { hour12: false });
+            const div = document.createElement('div');
+            div.className = 'log-row';
+            div.innerHTML = `<span class="log-meta">SYS // [${time}]</span><span class="sys-msg"></span>`;
+            feed.appendChild(div);
+            
+            const span = div.querySelector('.sys-msg');
+            let i = 0;
+            span.innerText = "> ";
+            
+            function type() {
+                if (i < text.length) {
+                    span.innerText += text.charAt(i);
+                    i++;
+                    feed.scrollTop = feed.scrollHeight;
+                    setTimeout(type, 20);
+                }
+            }
+            type();
+        }
+    })();
+</script>
+</body>
+</html>

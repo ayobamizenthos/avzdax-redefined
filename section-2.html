@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AVZDAX | QUANTUM TUNNEL</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* --- TYPOGRAPHY --- */
+        @import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Space+Mono:wght@400;700&display=swap');
+
+        body {
+            margin: 0;
+            background-color: #000;
+            color: #fff;
+            font-family: 'Space Mono', monospace;
+            overflow-x: hidden; /* Lock horizontal */
+        }
+
+        /* --- FIXED 3D BACKGROUND --- */
+        #canvas-container {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 0;
+        }
+
+        /* --- SCROLL CONTENT (INVISIBLE SPACERS) --- */
+        .scroll-layout {
+            position: relative;
+            z-index: 10;
+            pointer-events: none; /* Let clicks pass through to 3D if needed */
+        }
+
+        .section-spacer {
+            height: 100vh; /* Full screen height per product */
+            display: flex;
+            align-items: center;
+            justify-content: flex-start; /* Default Left */
+            padding: 0 10vw;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .section-spacer:nth-child(even) {
+            justify-content: flex-end; /* Alternate Right */
+            text-align: right;
+        }
+
+        /* --- TEXT ELEMENTS --- */
+        .product-info {
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(10px);
+            padding: 2rem;
+            border: 1px solid rgba(255,255,255,0.1);
+            max-width: 500px;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease-out;
+        }
+        
+        .product-info.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        h2 {
+            font-family: 'Syncopate', sans-serif;
+            font-weight: 700;
+            font-size: 3rem;
+            line-height: 1;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            color: white;
+            text-shadow: 0 0 20px rgba(255,255,255,0.3);
+        }
+
+        .tag {
+            display: inline-block;
+            border: 1px solid #00ffcc;
+            color: #00ffcc;
+            font-size: 0.7rem;
+            padding: 0.2rem 0.5rem;
+            margin-bottom: 1rem;
+            letter-spacing: 0.2em;
+        }
+
+        /* --- OVERLAYS --- */
+        .scanlines {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.2));
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 50;
+        }
+        
+        .vignette {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle, transparent 50%, black 120%);
+            pointer-events: none;
+            z-index: 40;
+        }
+
+        .progress-bar {
+            position: fixed;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            height: 200px;
+            width: 1px;
+            background: rgba(255,255,255,0.2);
+            z-index: 60;
+        }
+        .progress-indicator {
+            width: 3px;
+            height: 40px;
+            background: #00ffcc;
+            position: absolute;
+            left: -1px;
+            top: 0;
+            transition: top 0.1s ease-out;
+            box-shadow: 0 0 10px #00ffcc;
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- 3D SCENE -->
+    <div id="canvas-container"></div>
+
+    <!-- OVERLAYS -->
+    <div class="scanlines"></div>
+    <div class="vignette"></div>
+    
+    <!-- SCROLL INDICATOR -->
+    <div class="progress-bar">
+        <div class="progress-indicator" id="progress-indicator"></div>
+    </div>
+
+    <div class="fixed bottom-10 left-10 z-50 text-xs text-gray-500 font-mono animate-pulse">
+        // SCROLL TO INITIALIZE_
+    </div>
+
+    <!-- SCROLLABLE CONTENT -->
+    <div class="scroll-layout">
+        
+        <!-- SPACER TO START -->
+        <div class="section-spacer" style="height: 50vh; justify-content: center;">
+            <div class="text-center">
+                <h1 class="text-4xl md:text-6xl font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-900">
+                    SYSTEM ARCHITECTURE
+                </h1>
+                <p class="text-xs mt-4 text-gray-400 tracking-[0.5em]">SCROLL TO DECRYPT</p>
+            </div>
+        </div>
+
+        <!-- SECTION 1: PRIMUS -->
+        <div class="section-spacer" id="sec-0">
+            <div class="product-info">
+                <div class="tag">INTELLIGENCE LAYER</div>
+                <h2>PRIMUS</h2>
+                <p class="text-gray-400 text-sm leading-relaxed">
+                    The brain of the operation. An AI overlay that turns standard IP cameras into predictive engines. It doesn't just see movement; it understands intent.
+                </p>
+                <ul class="mt-4 text-xs text-gray-500 list-disc list-inside font-mono">
+                    <li>Anomaly Detection</li>
+                    <li>Behavioral Analysis</li>
+                    <li>Cloud/On-Prem Hybrid</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- SECTION 2: TRION -->
+        <div class="section-spacer" id="sec-1">
+            <div class="product-info">
+                <div class="tag">OPTICAL HARDWARE</div>
+                <h2>TRION</h2>
+                <p class="text-gray-400 text-sm leading-relaxed">
+                    Ruggedized eyes. Built for the African environment with onboard edge computing. High heat tolerance, dust resistance, and low-light capability.
+                </p>
+                <ul class="mt-4 text-xs text-gray-500 list-disc list-inside font-mono">
+                    <li>Edge AI Processing</li>
+                    <li>IP67 Weather Rating</li>
+                    <li>Solar/Battery Ready</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- SECTION 3: TELETRAAN -->
+        <div class="section-spacer" id="sec-2">
+            <div class="product-info">
+                <div class="tag">OPERATING SYSTEM</div>
+                <h2>TELETRAAN</h2>
+                <p class="text-gray-400 text-sm leading-relaxed">
+                    The central nervous system. A unified dashboard that connects thousands of nodes into one single source of truth. Filters noise, highlights threats.
+                </p>
+                <ul class="mt-4 text-xs text-gray-500 list-disc list-inside font-mono">
+                    <li>Multi-Site Management</li>
+                    <li>Instant Threat Alerts</li>
+                    <li>Forensic Search</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- SECTION 4: NEST -->
+        <div class="section-spacer" id="sec-3">
+            <div class="product-info">
+                <div class="tag">COMMAND SERVICE</div>
+                <h2>NEST</h2>
+                <p class="text-gray-400 text-sm leading-relaxed">
+                    We watch so you don't have to. A 24/7 remote monitoring service where human analysts verify AI alerts and dispatch response teams.
+                </p>
+                <ul class="mt-4 text-xs text-gray-500 list-disc list-inside font-mono">
+                    <li>Human Verification</li>
+                    <li>Police Dispatch Link</li>
+                    <li>Voice-Down Deterrence</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- SECTION 5: OBEX -->
+        <div class="section-spacer" id="sec-4">
+            <div class="product-info">
+                <div class="tag">SME SOLUTION</div>
+                <h2>OBEX</h2>
+                <p class="text-gray-400 text-sm leading-relaxed">
+                    Primus Lite. Enterprise-grade predictive security packaged for small businesses and residential estates. Compact, affordable, powerful.
+                </p>
+                <ul class="mt-4 text-xs text-gray-500 list-disc list-inside font-mono">
+                    <li>Plug & Play Setup</li>
+                    <li>Mobile App Control</li>
+                    <li>Smart Alerts</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- FOOTER SPACER -->
+        <div class="section-spacer" style="height: 50vh; justify-content: center;">
+            <div class="text-center opacity-50">
+                <p class="text-xs tracking-[0.5em]">END OF LINE_</p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- THREE.JS LOGIC -->
+    <script type="module">
+        import * as THREE from 'https://unpkg.com/three@0.160.0/build/three.module.js';
+
+        // --- SETUP ---
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color('#050505');
+        scene.fog = new THREE.FogExp2('#050505', 0.06); // Deep Fog
+
+        const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
+        camera.position.z = 5;
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        container.appendChild(renderer.domElement);
+
+        // --- LIGHTING ---
+        const light = new THREE.DirectionalLight(0xffffff, 2);
+        light.position.set(1, 1, 5);
+        scene.add(light);
+        
+        const blueLight = new THREE.PointLight(0x00ffcc, 2, 20);
+        blueLight.position.set(0, 0, 2);
+        scene.add(blueLight);
+
+        // --- OBJECTS (THE PRODUCTS) ---
+        const objects = [];
+        const sections = 5;
+        const distanceBetween = 15; // How far apart objects are in Z space
+
+        // HELPER: Create Wireframe/Solid Hybrid
+        function createTechObject(geometry, color, zPos) {
+            const group = new THREE.Group();
+            
+            // Solid Inner
+            const matSolid = new THREE.MeshStandardMaterial({
+                color: 0x111111,
+                roughness: 0.1,
+                metalness: 0.9,
+                emissive: color,
+                emissiveIntensity: 0.2
+            });
+            const solid = new THREE.Mesh(geometry, matSolid);
+            
+            // Wireframe Outer
+            const matWire = new THREE.MeshBasicMaterial({
+                color: color,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.15
+            });
+            const wire = new THREE.Mesh(geometry, matWire);
+            wire.scale.setScalar(1.05);
+
+            group.add(solid);
+            group.add(wire);
+            group.position.z = -zPos; // Negative Z to go "deeper" into screen
+            
+            // Add random floating particles around it
+            const partGeo = new THREE.BufferGeometry();
+            const pCount = 50;
+            const pPos = new Float32Array(pCount * 3);
+            for(let i=0; i<pCount*3; i++) pPos[i] = (Math.random()-0.5) * 5;
+            partGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
+            const partMat = new THREE.PointsMaterial({color: color, size: 0.05});
+            const parts = new THREE.Points(partGeo, partMat);
+            group.add(parts);
+
+            scene.add(group);
+            return group;
+        }
+
+        // 1. PRIMUS (Brain/Sphere)
+        objects.push(createTechObject(new THREE.IcosahedronGeometry(1.5, 2), 0x00ffcc, 0));
+
+        // 2. TRION (Lens/Cylinder)
+        const cylGeo = new THREE.CylinderGeometry(1, 1, 2.5, 16);
+        const cylObj = createTechObject(cylGeo, 0xffaa00, distanceBetween);
+        cylObj.rotation.x = Math.PI / 2; // Face camera
+        objects.push(cylObj);
+
+        // 3. TELETRAAN (Planes/Dashboard)
+        const boardGeo = new THREE.BoxGeometry(3, 2, 0.2);
+        objects.push(createTechObject(boardGeo, 0x0088ff, distanceBetween * 2));
+
+        // 4. NEST (Ring/Eye)
+        const ringGeo = new THREE.TorusGeometry(1.5, 0.4, 16, 50);
+        objects.push(createTechObject(ringGeo, 0xff3333, distanceBetween * 3));
+
+        // 5. OBEX (Cube)
+        const cubeGeo = new THREE.BoxGeometry(2, 2, 2);
+        objects.push(createTechObject(cubeGeo, 0xffffff, distanceBetween * 4));
+
+        // --- TUNNEL EFFECT ---
+        const tunnelGeo = new THREE.BufferGeometry();
+        const tCount = 2000;
+        const tPos = new Float32Array(tCount * 3);
+        for(let i=0; i<tCount; i++) {
+            tPos[i*3] = (Math.random() - 0.5) * 50; // X
+            tPos[i*3+1] = (Math.random() - 0.5) * 50; // Y
+            tPos[i*3+2] = -Math.random() * 100; // Z depth
+        }
+        tunnelGeo.setAttribute('position', new THREE.BufferAttribute(tPos, 3));
+        const tunnelMat = new THREE.PointsMaterial({ color: 0x444444, size: 0.05 });
+        const tunnel = new THREE.Points(tunnelGeo, tunnelMat);
+        scene.add(tunnel);
+
+
+        // --- SCROLL LOGIC ---
+        let scrollY = 0;
+        let targetZ = 5; // Camera starts at 5
+
+        window.addEventListener('scroll', () => {
+            scrollY = window.scrollY;
+            
+            // Calculate total scroll height
+            const maxScroll = document.body.scrollHeight - window.innerHeight;
+            const scrollPercent = scrollY / maxScroll;
+
+            // Move Camera deeper based on scroll
+            // We want to travel past all 5 objects
+            // Total distance = distanceBetween * 4
+            // Camera offset = 5
+            const totalDistance = (distanceBetween * 4) + 10; 
+            targetZ = 5 - (scrollPercent * totalDistance);
+
+            // Update Progress Bar
+            document.getElementById('progress-indicator').style.top = `${scrollPercent * 80}%`;
+
+            // Trigger CSS Animations for text
+            // Map scroll positions to object indices
+            const sectionHeight = window.innerHeight; // Approx height of one spacer
+            objects.forEach((obj, i) => {
+                const el = document.getElementById(`sec-${i}`);
+                if(!el) return;
+                
+                // Determine if this section is "Active" (in view)
+                // Adjust logic: Section top relative to viewport
+                const rect = el.getBoundingClientRect();
+                const info = el.querySelector('.product-info');
+                
+                if(rect.top < window.innerHeight * 0.6 && rect.bottom > window.innerHeight * 0.4) {
+                    info.classList.add('active');
+                } else {
+                    info.classList.remove('active');
+                }
+            });
+        });
+
+        // --- ANIMATION LOOP ---
+        const clock = new THREE.Clock();
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const time = clock.getElapsedTime();
+
+            // Smooth Camera Movement (Lerp)
+            camera.position.z += (targetZ - camera.position.z) * 0.05;
+
+            // Animate Objects (Spinning)
+            objects.forEach((group, i) => {
+                group.rotation.y = time * 0.2;
+                group.rotation.z = Math.sin(time + i) * 0.1;
+
+                // Parallax: Move objects slightly based on mouse (optional polish)
+                // If object is close to camera, scale it up slightly
+                const dist = Math.abs(group.position.z - camera.position.z);
+                if(dist < 10) {
+                    group.children[1].rotation.x += 0.01; // Spin wireframe faster if active
+                }
+            });
+
+            // Animate Tunnel
+            tunnel.rotation.z = time * 0.05;
+
+            renderer.render(scene, camera);
+        }
+
+        animate();
+
+        // Resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>

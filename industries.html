@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AVZDAX | SECTOR SOLUTIONS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;600;800&family=Orbitron:wght@500;700&display=swap');
+
+        body { 
+            margin: 0; background-color: #050505; color: #f3f3f3; 
+            font-family: 'Manrope', sans-serif; overflow-x: hidden;
+        }
+
+        /* --- BACKGROUND --- */
+        .bg-gradient {
+            position: fixed; inset: 0; z-index: -1;
+            background: radial-gradient(circle at 50% 0%, #151515 0%, #050505 70%);
+        }
+
+        /* --- HEADER --- */
+        .hero-section { padding: 120px 5vw 80px 5vw; text-align: left; border-bottom: 1px solid #222; }
+        .hero-label { 
+            color: #00ffaa; font-size: 12px; letter-spacing: 3px; text-transform: uppercase; 
+            font-weight: 700; margin-bottom: 20px; display: block;
+        }
+        .hero-title {
+            font-family: 'Orbitron'; font-size: clamp(3rem, 6vw, 6rem); 
+            font-weight: 700; line-height: 0.9; margin-bottom: 30px; color: white;
+        }
+        .hero-desc { 
+            font-size: 1.2rem; color: #999; max-width: 700px; line-height: 1.6; 
+            border-left: 2px solid #333; padding-left: 30px;
+        }
+
+        /* --- INDUSTRY SECTIONS --- */
+        .sector-container { padding: 0 5vw; }
+        
+        .sector-card {
+            border-bottom: 1px solid #222; padding: 60px 0;
+            transition: background 0.3s; cursor: pointer; position: relative;
+            overflow: hidden; /* Keep image contained */
+        }
+        
+        /* HOVER EFFECTS */
+        .sector-card:hover .sector-title { color: #00ffaa; padding-left: 20px; }
+        .sector-card:hover .sector-img { 
+            filter: grayscale(0%) contrast(110%); 
+            opacity: 0.4; /* Visible but subtle */
+            transform: scale(1.05); /* Slow zoom */
+        }
+        .sector-card.active .sector-img {
+            opacity: 0.6;
+            filter: grayscale(0%) contrast(110%);
+        }
+
+        /* Closed State */
+        .sector-header { display: flex; justify-content: space-between; align-items: center; position: relative; z-index: 10; }
+        .sector-num { font-family: 'Orbitron'; font-size: 1.5rem; color: #333; margin-right: 40px; }
+        .sector-title { 
+            font-family: 'Orbitron'; font-size: 3rem; font-weight: 700; color: white; 
+            transition: all 0.4s ease; flex-grow: 1;
+        }
+        .sector-icon { 
+            width: 50px; height: 50px; border: 1px solid #333; border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center; color: #666;
+            transition: all 0.3s;
+        }
+        .sector-card.active .sector-icon { transform: rotate(45deg); border-color: #00ffaa; color: #00ffaa; }
+
+        /* Background Image (The Visual Upgrade) */
+        .sector-img {
+            position: absolute; inset: 0; background-size: cover; background-position: center;
+            opacity: 0; filter: grayscale(100%); transition: all 0.8s ease-out; z-index: 0;
+            mask-image: linear-gradient(to right, transparent, black 50%, black 100%);
+            pointer-events: none;
+        }
+
+        /* Expanded Content */
+        .sector-body {
+            height: 0; overflow: hidden; opacity: 0; transform: translateY(20px);
+            transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1); position: relative; z-index: 10;
+        }
+        .sector-card.active .sector-body { height: auto; opacity: 1; transform: translateY(0); padding-top: 40px; }
+
+        /* Grid inside Body */
+        .body-grid {
+            display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 40px; margin-left: 80px;
+        }
+        .stat-box { border-left: 2px solid #333; padding-left: 20px; }
+        .stat-val { font-family: 'Orbitron'; font-size: 2.5rem; color: white; margin-bottom: 5px; }
+        .stat-label { font-size: 0.8rem; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+        
+        .solution-text { font-size: 1.1rem; color: #ccc; line-height: 1.6; }
+        .case-link {
+            display: inline-block; margin-top: 20px; color: #00ffaa; font-weight: 700; 
+            text-transform: uppercase; font-size: 12px; letter-spacing: 2px;
+            border-bottom: 1px solid transparent; transition: all 0.3s;
+        }
+        .case-link:hover { border-bottom-color: #00ffaa; padding-bottom: 2px; }
+
+        /* --- FOOTER CTA --- */
+        .footer-cta { padding: 100px 5vw; text-align: center; border-top: 1px solid #222; margin-top: 60px; }
+        .cta-btn {
+            background: white; color: black; padding: 20px 50px; font-family: 'Orbitron'; font-weight: 900;
+            text-transform: uppercase; letter-spacing: 2px; display: inline-block; transition: all 0.3s;
+        }
+        .cta-btn:hover { background: #00ffaa; box-shadow: 0 0 40px rgba(0,255,170,0.4); }
+
+        /* RESPONSIVE */
+        @media (max-width: 1024px) {
+            .body-grid { grid-template-columns: 1fr; margin-left: 0; }
+            .hero-title { font-size: 3.5rem; }
+            .sector-title { font-size: 1.8rem; }
+            .sector-img { mask-image: none; opacity: 0.2 !important; } /* Show dimmer on mobile */
+        }
+    </style>
+</head>
+<body>
+    <!-- GLOBAL NAVIGATION BAR 
+<!-- -->
+<style>
+    .nav-layer {
+        position: fixed; top: 0; left: 0; width: 100%; height: 80px;
+        z-index: 9999; display: flex; justify-content: space-between; align-items: center;
+        padding: 0 5vw; pointer-events: none; mix-blend-mode: exclusion;
+        background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent); /* Subtle shade for readability */
+    }
+
+    .brand {
+        font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 1.5rem; color: white;
+        pointer-events: auto; text-decoration: none; letter-spacing: 2px;
+    }
+    
+    .menu { display: flex; gap: 30px; pointer-events: auto; }
+    
+    .menu-item {
+        font-family: 'Share Tech Mono', monospace;
+        color: white; text-decoration: none; font-size: 12px; letter-spacing: 2px;
+        position: relative; transition: color 0.3s; font-weight: 700; cursor: pointer;
+    }
+    .menu-item::after {
+        content: ''; position: absolute; bottom: -5px; left: 0; width: 0%; height: 1px;
+        background: #00ffaa; transition: width 0.3s;
+    }
+    .menu-item:hover { color: #00ffaa; }
+    .menu-item:hover::after { width: 100%; }
+    
+    /* Mobile Menu Fix */
+    @media (max-width: 768px) {
+        .menu { display: none; } /* Hide on mobile for now or add hamburger logic */
+        .nav-layer { justify-content: center; }
+    }
+</style>
+
+<nav class="nav-layer">
+    <!-- Brand Logo links back to Home -->
+    <a href="index.html" class="brand">AVZDAX</a>
+    
+    <div class="menu">
+        <!-- Direct links to all files -->
+        <a class="menu-item" href="about.html">MISSION</a>
+        <a class="menu-item" href="products.html">PRODUCTS</a>
+        <a class="menu-item" href="industries.html">INDUSTRIES</a>
+        <a class="menu-item" href="newsroom.html">NEWSROOM</a>
+        <a class="menu-item" href="careers.html">CAREERS</a>
+        <a class="menu-item" href="contact.html">CONTACT</a>
+    </div>
+</nav>
+<!-- ================================================== -->
+
+<!-- ================================================== -->
+<!-- TACTICAL RETURN NODE (PASTE AFTER <BODY>) -->
+<!-- ================================================== -->
+<style>
+    .return-node {
+        position: fixed; top: 110px; left: 5vw; z-index: 8000;
+        display: flex; align-items: center; gap: 15px;
+        cursor: pointer; pointer-events: auto; text-decoration: none;
+    }
+
+    /* The Circle Container */
+    .node-circle {
+        width: 45px; height: 45px;
+        border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(10px);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    /* The Arrow Icon */
+    .node-arrow {
+        width: 18px; height: 18px; stroke: #888; stroke-width: 2; fill: none;
+        transition: all 0.3s ease;
+    }
+
+    /* The Text Label (Hidden until hover) */
+    .node-label {
+        font-family: 'Share Tech Mono', monospace; font-size: 11px; color: #00ffaa;
+        letter-spacing: 2px; text-transform: uppercase;
+        opacity: 0; transform: translateX(-10px);
+        transition: all 0.3s ease-out;
+    }
+
+    /* --- HOVER EFFECTS --- */
+    .return-node:hover .node-circle {
+        border-color: #00ffaa;
+        box-shadow: 0 0 20px rgba(0, 255, 170, 0.2);
+        transform: scale(1.1);
+    }
+    
+    .return-node:hover .node-arrow {
+        stroke: #00ffaa;
+        transform: translateX(-3px); /* Arrow pulls back visually */
+    }
+
+    .return-node:hover .node-label {
+        opacity: 1;
+        transform: translateX(0);
+    }
+</style>
+
+<a href="index.html" class="return-node">
+    <div class="node-circle">
+        <svg class="node-arrow" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+    </div>
+    <div class="node-label">RETURN TO BASE</div>
+</a>
+<!-- ================================================== -->
+
+
+
+    <div class="bg-gradient"></div>
+
+    <!-- HERO -->
+    <header class="hero-section">
+        <span class="hero-label">-</span>
+        <h1 class="hero-title">ENGINEERING<br>RESILIENCE</h1>
+        <p class="hero-desc">
+            Security requirements vary by environment. We have tailored the AVZDAX ecosystem to solve the specific, high-stakes challenges of Africa's critical industries.
+        </p>
+    </header>
+
+    <!-- INDUSTRIES LIST -->
+    <div class="sector-container">
+
+        <!-- 1. BANKING (Image: Secure Server Vault) -->
+        <div class="sector-card" onclick="toggleSector(this)">
+            <div class="sector-img" style="background-image: url('https://images.unsplash.com/photo-1563986768494-4dee2763ff3f?q=80&w=2070&auto=format&fit=crop');"></div>
+            <div class="sector-header">
+                <div class="flex items-center">
+                    <span class="sector-num">01</span>
+                    <h2 class="sector-title">BANKING & FINANCE</h2>
+                </div>
+                <div class="sector-icon">+</div>
+            </div>
+            <div class="sector-body">
+                <div class="body-grid">
+                    <div>
+                        <h3 class="text-white font-bold mb-4 uppercase tracking-widest text-sm">The Challenge</h3>
+                        <p class="solution-text text-gray-400">
+                            ATM fraud, coordinated branch attacks, and internal theft. Traditional CCTV provides evidence only after cash is lost.
+                        </p>
+                    </div>
+                    <div>
+                        <h3 class="text-white font-bold mb-4 uppercase tracking-widest text-sm">The Solution</h3>
+                        <p class="solution-text">
+                            <strong>PRIMUS AI</strong> detects "Loitering" and "Masked Face" anomalies at ATMs. <strong>TELETRAAN</strong> integrates with vault time-locks to ensure 100% access accountability.
+                        </p>
+                        <a href="#" class="case-link">VIEW NOVATRUST CASE STUDY &rarr;</a>
+                    </div>
+                    <div>
+                        <div class="stat-box mb-6">
+                            <div class="stat-val text-[#00ffaa]">100%</div>
+                            <div class="stat-label">ATM VANDALISM STOPPED</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-val">0.02s</div>
+                            <div class="stat-label">ALERT LATENCY</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. OIL & GAS (Image: Industrial Refinery Night) -->
+        <div class="sector-card" onclick="toggleSector(this)">
+            <div class="sector-img" style="background-image: url('https://images.unsplash.com/photo-1581093588401-fbb62a02f120?q=80&w=2070&auto=format&fit=crop');"></div>
+            <div class="sector-header">
+                <div class="flex items-center">
+                    <span class="sector-num">02</span>
+                    <h2 class="sector-title">OIL & GAS</h2>
+                </div>
+                <div class="sector-icon">+</div>
+            </div>
+            <div class="sector-body">
+                <div class="body-grid">
+                    <div>
+                        <h3 class="text-white font-bold mb-4 uppercase tracking-widest text-sm">The Challenge</h3>
+                        <p class="solution-text text-gray-400">
+                            Remote pipelines and refineries are vulnerable to vandalism and theft. Human patrols are expensive, dangerous, and have blind spots.
+                        </p>
+                    </div>
+                    <div>
+                        <h3 class="text-white font-bold mb-4 uppercase tracking-widest text-sm">The Solution</h3>
+                        <p class="solution-text">
+                            <strong>TRION THERMAL</strong> cameras detect heat signatures of intruders from 2km away, even in pitch darkness. <strong>NEST</strong> dispatches autonomous drones to track suspects.
+                        </p>
+                        <a href="#" class="case-link">VIEW DELTA PROJECT LOGS &rarr;</a>
+                    </div>
+                    <div>
+                        <div class="stat-box mb-6">
+                            <div class="stat-val text-[#ffaa00]">ZERO</div>
+                            <div class="stat-label">UNAUTHORIZED BREACHES</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-val">2km</div>
+                            <div class="stat-label">DETECTION RANGE</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. GOVERNMENT (Image: Smart City Aerial) -->
+        <div class="sector-card" onclick="toggleSector(this)">
+            <div class="sector-img" style="background-image: url('https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?q=80&w=2070&auto=format&fit=crop');"></div>
+            <div class="sector-header">
+                <div class="flex items-center">
+                    <span class="sector-num">03</span>
+                    <h2 class="sector-title">GOVERNMENT / CITY</h2>
+                </div>
+                <div class="sector-icon">+</div>
+            </div>
+            <div class="sector-body">
+                <div class="body-grid">
+                    <div>
+                        <h3 class="text-white font-bold mb-4 uppercase tracking-widest text-sm">The Challenge</h3>
+                        <p class="solution-text text-gray-400">
+                            Managing security across a sprawling metropolis. Traffic congestion, kidnapping, and lack of coordinated police response.
+                        </p>
+                    </div>
+                    <div>
+                        <h3 class="text-white font-bold mb-4 uppercase tracking-widest text-sm">The Solution</h3>
+                        <p class="solution-text">
+                            <strong>TELETRAAN CITY GRID</strong> unifies traffic cams and LPR (License Plate Recognition) into one command center, allowing police to track suspect vehicles city-wide.
+                        </p>
+                        <a href="#" class="case-link">VIEW SMART CITY BLUEPRINT &rarr;</a>
+                    </div>
+                    <div>
+                        <div class="stat-box mb-6">
+                            <div class="stat-val text-[#0088ff]">400+</div>
+                            <div class="stat-label">NODES CONNECTED</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-val">-30%</div>
+                            <div class="stat-label">CRIME RATE REDUCTION</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. RESIDENTIAL (Image: Modern Luxury Villa) -->
+        <div class="sector-card" onclick="toggleSector(this)">
+            <div class="sector-img" style="background-image: url('https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?q=80&w=2053&auto=format&fit=crop');"></div>
+            <div class="sector-header">
+                <div class="flex items-center">
+                    <span class="sector-num">04</span>
+                    <h2 class="sector-title">RESIDENTIAL ESTATES</h2>
+                </div>
+                <div class="sector-icon">+</div>
+            </div>
+            <div class="sector-body">
+                <div class="body-grid">
+                    <div>
+                        <h3 class="text-white font-bold mb-4 uppercase tracking-widest text-sm">The Challenge</h3>
+                        <p class="solution-text text-gray-400">
+                            Gated communities rely on sleepy guards. Residents feel unsafe despite high service charges.
+                        </p>
+                    </div>
+                    <div>
+                        <h3 class="text-white font-bold mb-4 uppercase tracking-widest text-sm">The Solution</h3>
+                        <p class="solution-text">
+                            <strong>OBEX (Lite)</strong> provides enterprise-grade perimeter defense for estates. Visitors are digitally logged, and wall-jumpers are detected instantly by AI.
+                        </p>
+                        <a href="#" class="case-link">VIEW LEKKI PHASE 1 STUDY &rarr;</a>
+                    </div>
+                    <div>
+                        <div class="stat-box mb-6">
+                            <div class="stat-val text-white">24/7</div>
+                            <div class="stat-label">ACTIVE MONITORING</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-val">15s</div>
+                            <div class="stat-label">RESPONSE TIME</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- FOOTER CTA -->
+    <div class="footer-cta">
+        <h2 class="text-3xl font-bold text-white font-orbitron mb-6">SECURE YOUR SECTOR</h2>
+        <p class="text-gray-500 mb-8 max-w-lg mx-auto">Our engineers are ready to design a custom threat-model for your specific industry.</p>
+        <a href="contact.html" class="cta-btn">REQUEST INDUSTRY AUDIT</a>
+    </div>
+
+    <script>
+        // ACCORDION LOGIC
+        function toggleSector(card) {
+            // Close others
+            document.querySelectorAll('.sector-card').forEach(c => {
+                if (c !== card) c.classList.remove('active');
+            });
+            
+            // Toggle current
+            card.classList.toggle('active');
+        }
+
+        // Reveal Animation
+        gsap.from(".hero-title", { duration: 1, y: 50, opacity: 0, ease: "power3.out" });
+        gsap.from(".sector-card", { 
+            duration: 0.8, y: 30, opacity: 0, stagger: 0.1, ease: "power3.out", delay: 0.2 
+        });
+    </script>
+
+    <!-- ================================================== -->
+<!-- GLOBAL COMMS UPLINK (FIXED VERSION) -->
+<!-- ================================================== -->
+
+<style>
+    /* CHAT BUTTON */
+    #uplink-btn {
+        position: fixed; bottom: 30px; right: 30px; z-index: 99999; /* Increased Z-Index */
+        width: 60px; height: 60px; background: rgba(0, 0, 0, 0.9);
+        border: 1px solid #00ffaa; border-radius: 50%; cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 0 20px rgba(0, 255, 170, 0.2);
+        transition: all 0.3s ease; backdrop-filter: blur(10px);
+        pointer-events: auto; /* Force clickable */
+    }
+    #uplink-btn:hover { transform: scale(1.1); box-shadow: 0 0 40px rgba(0, 255, 170, 0.6); background: #00ffaa; }
+    #uplink-btn:hover svg { stroke: black; } /* Invert icon color on hover */
+    
+    /* Pulse Animation */
+    .pulse-ring {
+        position: absolute; width: 100%; height: 100%; border-radius: 50%;
+        border: 1px solid #00ffaa; opacity: 0; animation: pulseOut 2s infinite; pointer-events: none;
+    }
+    @keyframes pulseOut { 0% { transform: scale(1); opacity: 0.5; } 100% { transform: scale(2.5); opacity: 0; } }
+
+    /* CHAT WINDOW */
+    #uplink-terminal {
+        position: fixed; bottom: 100px; right: 30px; width: 350px; height: 500px;
+        background: rgba(5, 5, 5, 0.98); border: 1px solid #333; border-left: 4px solid #00ffaa;
+        z-index: 99999; display: flex; flex-direction: column;
+        transform: translateY(20px) scale(0.95); opacity: 0; pointer-events: none;
+        transition: all 0.3s cubic-bezier(0.19, 1, 0.22, 1);
+        box-shadow: 0 20px 50px black; visibility: hidden;
+    }
+    #uplink-terminal.active { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; visibility: visible; }
+
+    /* HEADER */
+    .term-header {
+        padding: 15px; border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center;
+        background: linear-gradient(to right, rgba(0,255,170,0.1), transparent);
+    }
+    .term-title { font-family: 'Orbitron', sans-serif; color: white; font-weight: 700; font-size: 12px; letter-spacing: 1px; }
+    .term-status { font-family: monospace; color: #00ffaa; font-size: 10px; display: flex; align-items: center; gap: 5px; }
+    .status-dot { width: 6px; height: 6px; background: #00ffaa; border-radius: 50%; animation: blink 1s infinite; }
+
+    /* BODY */
+    .term-body {
+        flex-grow: 1; padding: 20px; overflow-y: auto; font-family: monospace; font-size: 12px;
+        display: flex; flex-direction: column; gap: 15px;
+    }
+    .msg { padding: 10px; border-radius: 4px; max-width: 85%; line-height: 1.4; }
+    .msg-sys { color: #888; font-size: 10px; text-align: center; margin-bottom: 10px; }
+    .msg-bot { background: rgba(0, 255, 170, 0.05); border-left: 2px solid #00ffaa; color: #00ffaa; align-self: flex-start; }
+    .msg-user { background: #222; color: white; align-self: flex-end; border-right: 2px solid #666; }
+
+    /* INPUT */
+    .term-input {
+        padding: 15px; border-top: 1px solid #222; display: flex; gap: 10px; background: #000;
+    }
+    .chat-field {
+        width: 100%; background: transparent; border: none; color: white; font-family: monospace;
+        outline: none; font-size: 12px;
+    }
+    .send-btn { color: #00ffaa; font-size: 18px; cursor: pointer; transition: transform 0.2s; }
+    .send-btn:hover { transform: translateX(3px); }
+
+</style>
+
+<!-- BUTTON -->
+<div id="uplink-btn" onclick="window.toggleChat()">
+    <div class="pulse-ring"></div>
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00ffaa" stroke-width="2">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+    </svg>
+</div>
+
+<!-- TERMINAL WINDOW -->
+<div id="uplink-terminal">
+    <div class="term-header">
+        <div class="term-title">LIVE SUPPORT</div>
+        <div class="term-status"><div class="status-dot"></div> ENCRYPTED</div>
+    </div>
+    
+    <div class="term-body" id="term-log">
+        <div class="msg-sys">ESTABLISHING SECURE HANDSHAKE...<br>CONNECTION ID: 992-X</div>
+    </div>
+    
+    <div class="term-input">
+        <span style="color: #00ffaa;">></span>
+        <input type="text" class="chat-field" id="term-input" placeholder="ENTER COMMAND..." onkeypress="window.handleChat(event)">
+        <div class="send-btn" onclick="window.sendChat()">→</div>
+    </div>
+</div>
+
+<!-- STANDARD SCRIPT (NOT MODULE) TO ENSURE GLOBAL ACCESS -->
+<script>
+    // We wrap this in a standard script tag so 'window' can access these functions
+    (function() {
+        let isChatOpen = false;
+        const terminal = document.getElementById('uplink-terminal');
+        const log = document.getElementById('term-log');
+        const input = document.getElementById('term-input');
+
+        // Expose function to global window object
+        window.toggleChat = function() {
+            isChatOpen = !isChatOpen;
+            if (isChatOpen) {
+                terminal.classList.add('active');
+                // Auto-greeting if empty
+                if (log.children.length < 2) {
+                    setTimeout(() => botType("AVZDAX COMMAND ONLINE."), 500);
+                    setTimeout(() => botType("How can we assist you?"), 1500);
+                }
+            } else {
+                terminal.classList.remove('active');
+            }
+        };
+
+        window.handleChat = function(e) {
+            if (e.key === 'Enter') window.sendChat();
+        };
+
+        window.sendChat = function() {
+            const txt = input.value.trim();
+            if (!txt) return;
+            
+            // Add User Msg
+            const msg = document.createElement('div');
+            msg.className = 'msg msg-user';
+            msg.innerText = txt;
+            log.appendChild(msg);
+            input.value = '';
+            
+            // Auto-Scroll
+            log.scrollTop = log.scrollHeight;
+
+            // Bot Reply Simulation
+            setTimeout(() => {
+                botType("Request received. An operator has been notified.");
+            }, 1000);
+        };
+
+        function botType(text) {
+            const msg = document.createElement('div');
+            msg.className = 'msg msg-bot';
+            msg.innerText = text;
+            log.appendChild(msg);
+            log.scrollTop = log.scrollHeight;
+        }
+    })();
+</script>
+ <!-- ================================================== -->
+<!-- GLOBAL COMMS UPLINK V4 (HOLOGRAPHIC NODE) -->
+<!-- ================================================== -->
+
+<style>
+    /* IMPORT FONTS (Ensure visibility) */
+    @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@500;900&display=swap');
+
+    /* --- 1. THE HOLOGRAPHIC TRIGGER --- */
+    #uplink-wrapper {
+        position: fixed; bottom: 40px; right: 40px; z-index: 999999;
+        display: flex; align-items: center; gap: 15px; pointer-events: none; /* Wrapper doesn't block clicks */
+    }
+
+    /* The Status Label (Floating Text) */
+    .uplink-label {
+        background: rgba(0, 0, 0, 0.8); border: 1px solid #00ffaa;
+        color: #00ffaa; font-family: 'Share Tech Mono', monospace; font-size: 10px;
+        padding: 6px 12px; border-radius: 4px; pointer-events: auto;
+        backdrop-filter: blur(10px); letter-spacing: 1px;
+        box-shadow: 0 0 15px rgba(0, 255, 170, 0.1);
+        transform: translateX(10px); opacity: 0; transition: all 0.3s ease;
+    }
+    #uplink-wrapper:hover .uplink-label { opacity: 1; transform: translateX(0); }
+
+    /* The Orb Button */
+    #uplink-btn {
+        width: 70px; height: 70px; cursor: pointer; pointer-events: auto;
+        border-radius: 50%; position: relative;
+        background: radial-gradient(circle at 30% 30%, #222, #000);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.8), inset 0 0 20px rgba(0,255,170,0.1);
+        display: flex; align-items: center; justify-content: center;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    
+    #uplink-btn:hover { 
+        transform: scale(1.1); 
+        border-color: #00ffaa;
+        box-shadow: 0 0 40px rgba(0, 255, 170, 0.4), inset 0 0 30px rgba(0,255,170,0.2);
+    }
+
+    /* Internal Icon */
+    .chat-icon { color: white; transition: 0.3s; filter: drop-shadow(0 0 5px rgba(255,255,255,0.5)); }
+    #uplink-btn:hover .chat-icon { color: #00ffaa; filter: drop-shadow(0 0 8px #00ffaa); }
+
+    /* Pulse Ring Animation */
+    .pulse-emitter {
+        position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+        width: 100%; height: 100%; border-radius: 50%; border: 1px solid #00ffaa;
+        animation: sonarWave 2s infinite; opacity: 0; pointer-events: none;
+    }
+    @keyframes sonarWave { 
+        0% { width: 100%; height: 100%; opacity: 0.8; border-width: 2px; }
+        100% { width: 250%; height: 250%; opacity: 0; border-width: 0px; } 
+    }
+
+
+    /* --- 2. THE COMMAND INTERFACE --- */
+    #uplink-window {
+        position: fixed; bottom: 130px; right: 40px; width: 400px; height: 600px;
+        background: rgba(10, 12, 14, 0.95); 
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-top: 4px solid #00ffaa;
+        z-index: 999999; display: flex; flex-direction: column;
+        transform-origin: bottom right;
+        transform: scale(0.9) translateY(20px); opacity: 0; pointer-events: none;
+        transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+        box-shadow: 0 20px 60px rgba(0,0,0,0.9);
+        border-radius: 12px; overflow: hidden;
+        font-family: 'Share Tech Mono', monospace;
+    }
+    #uplink-window.active { transform: scale(1) translateY(0); opacity: 1; pointer-events: auto; }
+
+    /* Glass & Grain FX */
+    #uplink-window::before {
+        content: ""; position: absolute; inset: 0; pointer-events: none; z-index: -1;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+        opacity: 0.5;
+    }
+    #uplink-window::after {
+        content: ""; position: absolute; inset: 0; pointer-events: none; z-index: -2;
+        backdrop-filter: blur(20px);
+    }
+
+    /* HEADER */
+    .term-header {
+        padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.1);
+        background: linear-gradient(to bottom, rgba(255,255,255,0.05), transparent);
+        display: flex; justify-content: space-between; align-items: center;
+    }
+    .term-brand { font-family: 'Orbitron'; color: white; font-weight: 900; font-size: 14px; letter-spacing: 1px; }
+    .term-signal { 
+        font-size: 10px; color: #00ffaa; display: flex; align-items: center; gap: 6px; 
+        text-shadow: 0 0 10px rgba(0, 255, 170, 0.5);
+    }
+    .signal-bars { display: flex; gap: 2px; align-items: flex-end; height: 10px; }
+    .bar { width: 3px; background: #00ffaa; }
+    .b1 { height: 4px; opacity: 0.4; } .b2 { height: 7px; opacity: 0.7; } .b3 { height: 10px; }
+
+    /* FEED */
+    .term-feed {
+        flex-grow: 1; padding: 20px; overflow-y: auto;
+        display: flex; flex-direction: column; gap: 15px;
+        /* Scanline Background */
+        background: linear-gradient(to bottom, rgba(0,0,0,0) 50%, rgba(0,0,0,0.2) 50%);
+        background-size: 100% 4px;
+    }
+    .term-feed::-webkit-scrollbar { width: 4px; }
+    .term-feed::-webkit-scrollbar-thumb { background: #333; }
+
+    /* MESSAGES */
+    .log-row { font-size: 12px; line-height: 1.5; display: flex; flex-direction: column; }
+    .log-meta { font-size: 9px; color: #555; margin-bottom: 2px; }
+    
+    .sys-msg { color: #00ffaa; text-shadow: 0 0 5px rgba(0, 255, 170, 0.3); }
+    .usr-msg { color: white; text-align: right; align-self: flex-end; background: rgba(255,255,255,0.1); padding: 8px 12px; border-radius: 4px; display: inline-block; border: 1px solid rgba(255,255,255,0.2); }
+
+    /* INPUT */
+    .term-input-area {
+        padding: 20px; border-top: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.6);
+        display: flex; align-items: center; gap: 10px;
+    }
+    .cursor { color: #00ffaa; animation: blink 1s infinite; }
+    .input-cmd {
+        width: 100%; background: transparent; border: none; outline: none;
+        color: white; font-family: 'Share Tech Mono'; font-size: 14px;
+    }
+    .tx-btn {
+        font-size: 10px; color: #00ffaa; border: 1px solid #00ffaa; padding: 5px 10px;
+        cursor: pointer; transition: all 0.2s;
+    }
+    .tx-btn:hover { background: #00ffaa; color: black; }
+
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+    /* MOBILE */
+    @media (max-width: 768px) {
+        #uplink-window { width: 90%; right: 5%; bottom: 110px; height: 60vh; }
+    }
+</style>
+
+<!-- TRIGGER -->
+<div id="uplink-wrapper">
+    <div class="uplink-label">SYSTEM ONLINE</div>
+    <div id="uplink-btn" onclick="window.toggleUplink()">
+        <div class="pulse-emitter"></div>
+        <svg class="chat-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+    </div>
+</div>
+
+<!-- TERMINAL -->
+<div id="uplink-window">
+    <div class="term-header">
+        <div class="term-brand">AVZDAX COMMAND</div>
+        <div class="term-signal">
+            <div class="signal-bars"><div class="bar b1"></div><div class="bar b2"></div><div class="bar b3"></div></div>
+            LINK_ESTABLISHED
+        </div>
+    </div>
+
+    <div class="term-feed" id="console-feed">
+        <div class="log-row">
+            <span class="log-meta">SYS_INIT // [12:01:42]</span>
+            <span class="sys-msg">> ENCRYPTED CHANNEL OPEN.</span>
+        </div>
+    </div>
+
+    <div class="term-input-area">
+        <span class="cursor">></span>
+        <input type="text" id="cmd-input" class="input-cmd" placeholder="ENTER QUERY..." onkeypress="window.handleKey(event)">
+        <div class="tx-btn" onclick="window.transmit()">SEND</div>
+    </div>
+</div>
+
+<!-- LOGIC -->
+<script>
+    (function() {
+        let isOpen = false;
+        const win = document.getElementById('uplink-window');
+        const feed = document.getElementById('console-feed');
+        const input = document.getElementById('cmd-input');
+
+        window.toggleUplink = function() {
+            isOpen = !isOpen;
+            if (isOpen) {
+                win.classList.add('active');
+                if (feed.children.length < 2) {
+                    setTimeout(() => sysType("OPERATOR_04 has joined the session."), 600);
+                    setTimeout(() => sysType("How may we secure your operations?"), 1500);
+                }
+            } else {
+                win.classList.remove('active');
+            }
+        };
+
+        window.handleKey = function(e) {
+            if (e.key === 'Enter') window.transmit();
+        };
+
+        window.transmit = function() {
+            const txt = input.value.trim();
+            if (!txt) return;
+
+            // User Msg
+            addLog(txt, true);
+            input.value = '';
+            feed.scrollTop = feed.scrollHeight;
+
+            // Bot Logic
+            setTimeout(() => {
+                sysType("Processing inquiry...");
+            }, 600);
+            
+            setTimeout(() => {
+                sysType("Your request has been logged. An agent is reviewing your dossier.");
+            }, 2000);
+        };
+
+        // Helper: Add User Log
+        function addLog(text, isUser) {
+            const time = new Date().toLocaleTimeString('en-GB', { hour12: false });
+            const div = document.createElement('div');
+            div.className = 'log-row';
+            
+            if(isUser) {
+                div.innerHTML = `<span class="log-meta" style="text-align:right; color:#666;">USER_ID // [${time}]</span><span class="usr-msg">${text}</span>`;
+            } else {
+                div.innerHTML = `<span class="log-meta">SYS // [${time}]</span><span class="sys-msg">> ${text}</span>`;
+            }
+            feed.appendChild(div);
+        }
+
+        // Helper: Typewriter Effect for System
+        function sysType(text) {
+            const time = new Date().toLocaleTimeString('en-GB', { hour12: false });
+            const div = document.createElement('div');
+            div.className = 'log-row';
+            div.innerHTML = `<span class="log-meta">SYS // [${time}]</span><span class="sys-msg"></span>`;
+            feed.appendChild(div);
+            
+            const span = div.querySelector('.sys-msg');
+            let i = 0;
+            span.innerText = "> ";
+            
+            function type() {
+                if (i < text.length) {
+                    span.innerText += text.charAt(i);
+                    i++;
+                    feed.scrollTop = feed.scrollHeight;
+                    setTimeout(type, 20);
+                }
+            }
+            type();
+        }
+    })();
+</script>
+</body>
+</html>

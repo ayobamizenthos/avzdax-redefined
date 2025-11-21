@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AVZDAX | RAPID RESPONSE</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <!-- POST PROCESSING STACK -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/RGBShiftShader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/FilmShader.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@500;700&display=swap');
+
+        body { margin: 0; background-color: #000; overflow: hidden; }
+
+        /* --- HUD LAYER --- */
+        .hud-layer {
+            position: absolute; inset: 0; pointer-events: none; z-index: 20;
+            padding: 50px; display: flex; flex-direction: column; justify-content: space-between;
+        }
+
+        /* TOP LEFT: LOCATION (UPDATED) */
+        .geo-box { border-left: 4px solid #00ffaa; padding-left: 20px; }
+        .geo-title { 
+            font-family: 'Orbitron', sans-serif; font-size: 3rem; line-height: 0.8; 
+            font-weight: 900; color: #00ffaa; letter-spacing: 2px; 
+            text-shadow: 0 0 30px rgba(0, 255, 170, 0.4);
+        }
+        .geo-sub { font-family: 'Share Tech Mono', monospace; color: white; font-size: 14px; letter-spacing: 4px; margin-top: 10px; }
+        .geo-coords { 
+            font-family: 'Share Tech Mono'; color: #666; font-size: 11px; margin-top: 5px; 
+            display: flex; gap: 15px;
+        }
+
+        /* RIGHT SIDE: INTEL */
+        .intel-column {
+            position: absolute; right: 50px; top: 50%; transform: translateY(-50%);
+            display: flex; flex-direction: column; gap: 40px; text-align: right;
+        }
+        .intel-label {
+            font-family: 'Rajdhani', sans-serif; font-size: 11px; color: #666; 
+            letter-spacing: 3px; text-transform: uppercase; margin-bottom: 5px;
+            border-bottom: 1px solid #333; padding-bottom: 2px; display: inline-block;
+        }
+        .intel-value {
+            font-family: 'Share Tech Mono', monospace; font-size: 32px; color: #00ffaa;
+            text-shadow: 0 0 15px rgba(0, 255, 170, 0.4);
+        }
+        .threat-val {
+            font-family: 'Orbitron', sans-serif; font-size: 5rem; font-weight: 900; color: #ff3333;
+            text-shadow: 0 0 30px rgba(255, 51, 51, 0.6);
+        }
+
+        /* BOTTOM LEFT: NARRATIVE DECK */
+        .deck-container { width: 500px; }
+        .deck-header {
+            font-family: 'Rajdhani', sans-serif; font-size: 11px; color: #888;
+            letter-spacing: 4px; margin-bottom: 10px; display: flex; align-items: center; gap: 10px;
+        }
+        .deck-header::before { content:''; width: 8px; height: 8px; background: #00ffaa; border-radius: 50%; animation: blink 1s infinite; }
+
+        .deck-product {
+            font-family: 'Orbitron', sans-serif; font-size: 4rem; font-weight: 900;
+            color: transparent; -webkit-text-stroke: 1px white; line-height: 0.9;
+            transition: all 0.3s;
+        }
+        .deck-product.active {
+            color: white; -webkit-text-stroke: 0px; 
+            text-shadow: 0 0 40px rgba(255,255,255,0.8);
+        }
+
+        .deck-desc {
+            font-family: 'Rajdhani', sans-serif; font-size: 18px; line-height: 1.3;
+            color: #ccc; background: rgba(0,0,0,0.7); border-left: 3px solid #00ffaa;
+            padding: 15px 20px; margin-top: 15px; backdrop-filter: blur(8px);
+            transform: translateY(20px); opacity: 0; transition: all 0.4s ease-out;
+        }
+        .deck-desc.visible { transform: translateY(0); opacity: 1; }
+        .deck-desc strong { color: white; font-weight: 700; }
+
+        /* AR TAGS (UPDATED NAMES) */
+        .ar-marker {
+            position: absolute; font-family: 'Share Tech Mono', monospace; font-size: 10px;
+            color: #00ffaa; padding: 2px 6px; border: 1px solid #00ffaa;
+            background: rgba(0,0,0,0.8); transform: translate(-50%, -50%);
+            opacity: 0; pointer-events: none; white-space: nowrap;
+            box-shadow: 0 0 10px rgba(0, 255, 170, 0.2);
+        }
+        .ar-marker::after {
+            content: ''; position: absolute; top: 100%; left: 50%;
+            height: 30px; width: 1px; background: #00ffaa;
+        }
+
+        /* FX */
+        .vignette { position: absolute; inset: 0; background: radial-gradient(circle, transparent 50%, black 140%); z-index: 5; pointer-events: none;}
+        .scanline { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0.03) 50%, transparent 50%); background-size: 100% 4px; z-index: 6; pointer-events: none; }
+        @keyframes blink { 50% { opacity: 0; } }
+
+    </style>
+</head>
+<body>
+
+    <div id="canvas-container" class="absolute inset-0 z-0"></div>
+    <div class="vignette"></div>
+    <div class="scanline"></div>
+
+    <div class="hud-layer">
+        
+        <!-- TOP LEFT: SWAPPED & GREEN -->
+        <div class="geo-box">
+            <div class="geo-title">VICTORIA ISLAND</div>
+            <div class="geo-sub">LAGOS // PERIMETER ZONE_04</div>
+            <div class="geo-coords">
+                <span id="lat">LAT: 6.4281° N</span>
+                <span id="lon">LON: 3.4219° E</span>
+                <span>ISO: 25600</span>
+                <span>LIVE</span>
+            </div>
+        </div>
+
+        <!-- RIGHT SIDE: INTELLIGENCE -->
+        <div class="intel-column">
+            <div class="intel-block">
+                <div class="intel-label">SKELETAL ANALYSIS</div>
+                <div class="intel-value" id="val-analysis">SCANNING...</div>
+            </div>
+            <div class="intel-block">
+                <div class="intel-label">BIOMETRIC MATCH</div>
+                <div class="intel-value" id="val-bio">NO DATA</div>
+            </div>
+            <div class="intel-block">
+                <div class="intel-label">THREAT PROBABILITY</div>
+                <div class="threat-val" id="val-threat">0%</div>
+            </div>
+        </div>
+
+        <!-- BOTTOM LEFT: NARRATIVE DECK -->
+        <div class="deck-container">
+            <div class="deck-header">EVENT TIMELINE // <span id="timer">00:00:00</span></div>
+            <div class="deck-product" id="prod-name">SYSTEM_IDLE</div>
+            <div class="deck-desc" id="prod-desc">
+                Initializing defense protocols...
+            </div>
+        </div>
+
+    </div>
+
+    <!-- UPDATED TAG NAMES -->
+    <div class="ar-marker" id="tag-head">CRANIUM</div>
+    <div class="ar-marker" id="tag-spine">SPINAL CORD</div>
+    <div class="ar-marker" id="tag-rhand">RIGHT HAND</div>
+    <div class="ar-marker" id="tag-lhand">LEFT HAND</div>
+
+    <!-- THREE.JS -->
+    <script>
+        // CONFIG: 12 Seconds Loop (Faster)
+        const LOOP_TIME = 12; 
+
+        // SETUP
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color('#000000');
+        scene.fog = new THREE.FogExp2('#000000', 0.025);
+
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 1.5, 11);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: false });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.shadowMap.enabled = true;
+        container.appendChild(renderer.domElement);
+
+        // POST PROCESSING
+        const composer = new THREE.EffectComposer(renderer);
+        composer.addPass(new THREE.RenderPass(scene, camera));
+        
+        const bloom = new THREE.UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
+        bloom.threshold = 0; bloom.strength = 0.9; bloom.radius = 0.6;
+        composer.addPass(bloom);
+        const rgb = new THREE.ShaderPass(THREE.RGBShiftShader); rgb.uniforms['amount'].value = 0.0015; composer.addPass(rgb);
+        const film = new THREE.ShaderPass(THREE.FilmShader); film.uniforms['nIntensity'].value = 0.5; composer.addPass(film);
+
+        // ASSETS
+        const floor = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), new THREE.MeshStandardMaterial({ color: 0x050505, roughness: 0.1, metalness: 0.6 }));
+        floor.rotation.x = -Math.PI/2; floor.receiveShadow = true; scene.add(floor);
+
+        const wall = new THREE.Mesh(new THREE.BoxGeometry(15, 8, 1), new THREE.MeshStandardMaterial({ color: 0x111111 }));
+        wall.position.set(0, 4, -6); wall.castShadow = true; wall.receiveShadow = true; scene.add(wall);
+        const fence = new THREE.Mesh(new THREE.PlaneGeometry(15, 2), new THREE.MeshBasicMaterial({ color: 0x444444, wireframe: true, transparent: true, opacity: 0.4 }));
+        fence.position.set(0, 9, -6); scene.add(fence);
+
+        // INTRUDER
+        const intruder = new THREE.Group(); scene.add(intruder);
+        const matBody = new THREE.MeshStandardMaterial({ color: 0x0a0a0a });
+        const matBone = new THREE.MeshBasicMaterial({ color: 0x00ffaa, wireframe: true, transparent: true, opacity: 0.1 });
+
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.22, 16, 16), matBody); head.position.y = 1.65;
+        const torso = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.8, 0.25), matBody); torso.position.y = 1.1;
+        const limbGeo = new THREE.BoxGeometry(0.12, 0.7, 0.12);
+        const rArm = new THREE.Mesh(limbGeo, matBody); const lArm = new THREE.Mesh(limbGeo, matBody);
+        const rLeg = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.8, 0.18), matBody);
+        const lLeg = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.8, 0.18), matBody);
+
+        const grA = new THREE.Group(); grA.position.set(-0.35,1.5,0); grA.add(rArm); rArm.position.y=-0.35;
+        const glA = new THREE.Group(); glA.position.set(0.35,1.5,0); glA.add(lArm); lArm.position.y=-0.35;
+        const grL = new THREE.Group(); grL.position.set(-0.2,0.6,0); grL.add(rLeg); rLeg.position.y=-0.4;
+        const glL = new THREE.Group(); glL.position.set(0.2,0.6,0); glL.add(lLeg); lLeg.position.y=-0.4;
+        intruder.add(head, torso, grA, glA, grL, glL);
+
+        // BONES
+        const boneMat = new THREE.LineBasicMaterial({ color: 0x00ffaa, transparent: true, opacity: 0 });
+        const boneGeo = new THREE.BufferGeometry();
+        const skeleton = new THREE.LineSegments(boneGeo, boneMat);
+        scene.add(skeleton);
+
+        // LIGHTS
+        const ambient = new THREE.AmbientLight(0x111111); scene.add(ambient);
+        const spot = new THREE.SpotLight(0xffffff, 0, 50, 0.4, 0.5); spot.position.set(4, 8, 10); spot.target = intruder; spot.castShadow = true; scene.add(spot);
+        const alarm = new THREE.PointLight(0xff0000, 0, 20); alarm.position.set(0, 6, -5); scene.add(alarm);
+
+        // RAIN
+        const rPos = new Float32Array(15000); for(let i=0;i<15000;i++) rPos[i]=(Math.random()-0.5)*50;
+        const rainGeo = new THREE.BufferGeometry(); rainGeo.setAttribute('position', new THREE.BufferAttribute(rPos, 3));
+        const rain = new THREE.Points(rainGeo, new THREE.PointsMaterial({color: 0x555555, size: 0.05, transparent: true, opacity: 0.3}));
+        scene.add(rain);
+
+        // UI REFS
+        const ui = {
+            analysis: document.getElementById('val-analysis'),
+            bio: document.getElementById('val-bio'),
+            threat: document.getElementById('val-threat'),
+            name: document.getElementById('prod-name'),
+            desc: document.getElementById('prod-desc'),
+            lat: document.getElementById('lat'),
+            lon: document.getElementById('lon'),
+            tags: {
+                head: document.getElementById('tag-head'),
+                spine: document.getElementById('tag-spine'),
+                rh: document.getElementById('tag-rhand'),
+                lh: document.getElementById('tag-lhand')
+            }
+        };
+
+        // SCRIPT - 3 SECONDS PER STEP
+        const SCRIPT = [
+            {
+                time: 0,
+                name: "TRION",
+                color: "#00ffaa",
+                desc: "Thermal optics detected heat signatures where the human eye saw nothing.",
+                anl: "SCANNING...", bio: "NO TARGET", thr: "0%",
+                action: () => { spot.intensity = 0.1; alarm.intensity = 0; boneMat.opacity = 0; updateTags(0); }
+            },
+            {
+                time: 3,
+                name: "PRIMUS",
+                color: "#00ffaa",
+                desc: "AI tracked the skeleton. Gait analysis confirmed 'Sneaking' behavior instantly.",
+                anl: "GAIT_MATCH", bio: "MALE_ADULT", thr: "45%",
+                action: () => { boneMat.opacity = 1; boneMat.color.setHex(0x00ffaa); updateTags(1, "#00ffaa"); }
+            },
+            {
+                time: 6,
+                name: "TELETRAAN",
+                color: "#ffaa00",
+                desc: "Operating System verified threat and sent evidence to Command in 0.02s.",
+                anl: "UPLOADING...", bio: "ID: 9921", thr: "88%",
+                action: () => { boneMat.color.setHex(0xffaa00); updateTags(1, "#ffaa00"); }
+            },
+            {
+                time: 9,
+                name: "NEST",
+                color: "#ff3333",
+                desc: "Operators validated breach. Security forces dispatched. Threat neutralized.",
+                anl: "INTERCEPTED", bio: "SECURED", thr: "100%",
+                action: () => { spot.intensity = 4; boneMat.color.setHex(0xff3333); updateTags(1, "#ff3333"); }
+            }
+        ];
+
+        let step = -1;
+        const clock = new THREE.Clock();
+
+        function animate() {
+            const t = clock.getElapsedTime();
+            const lT = t % LOOP_TIME;
+            
+            if(Math.random()>0.8) {
+                ui.lat.innerText = `LAT: 6.42${Math.floor(81+Math.random()*9)}° N`;
+                ui.lon.innerText = `LON: 3.42${Math.floor(19+Math.random()*9)}° E`;
+            }
+            document.getElementById('timer').innerText = `00:00:${Math.floor(lT).toString().padStart(2,'0')}`;
+
+            const rP = rain.geometry.attributes.position.array; for(let i=1;i<rP.length;i+=3) { rP[i]-=0.5; if(rP[i]<0) rP[i]=20; }
+            rain.geometry.attributes.position.needsUpdate = true;
+
+            // Faster Movement for 12s loop
+            if(lT < 9) {
+                intruder.position.z = 10 - (lT * 1.0); // Faster sneak
+                intruder.position.y = Math.abs(Math.sin(t*10))*0.05;
+                torso.rotation.x = 0.3;
+                grA.rotation.x = -Math.sin(t*10)*0.6; glA.rotation.x = Math.sin(t*10)*0.6;
+                grL.rotation.x = Math.sin(t*10)*0.6; glL.rotation.x = -Math.sin(t*10)*0.6;
+            } else {
+                intruder.position.y = 0.2; torso.rotation.x=0;
+                grA.rotation.z=-2.5; glA.rotation.z=2.5; grL.rotation.x=0; glL.rotation.x=1.5;
+                alarm.intensity = Math.sin(t*20)>0 ? 2 : 0;
+            }
+
+            const pH = new THREE.Vector3(); head.getWorldPosition(pH);
+            const pT = new THREE.Vector3(); torso.getWorldPosition(pT);
+            const pRH = new THREE.Vector3(0,-0.35,0); pRH.applyMatrix4(rArm.matrixWorld);
+            const pLH = new THREE.Vector3(0,-0.35,0); pLH.applyMatrix4(lArm.matrixWorld);
+            const pRF = new THREE.Vector3(0,-0.4,0); pRF.applyMatrix4(rLeg.matrixWorld);
+            const pLF = new THREE.Vector3(0,-0.4,0); pLF.applyMatrix4(lLeg.matrixWorld);
+            boneGeo.setFromPoints([pH, pT, pT, pRH, pT, pLH, pT, pRF, pT, pLF]);
+
+            if(lT > 3) {
+                moveTag(ui.tags.head, pH); moveTag(ui.tags.spine, pT);
+                moveTag(ui.tags.rh, pRH); moveTag(ui.tags.lh, pLH);
+            }
+
+            const idx = SCRIPT.findIndex((s, i) => { const n = SCRIPT[i+1]?SCRIPT[i+1].time:LOOP_TIME; return lT>=s.time && lT<n; });
+            if(idx !== step) {
+                step = idx; const d = SCRIPT[idx];
+                ui.name.classList.remove('active'); ui.desc.classList.remove('visible');
+                setTimeout(() => {
+                    ui.name.innerText = d.name; ui.name.classList.add('active');
+                    ui.desc.innerHTML = d.desc; ui.desc.classList.add('visible');
+                    ui.desc.style.borderColor = d.color; ui.desc.style.background = d.color+"11";
+                    ui.analysis.innerText = d.anl; ui.analysis.style.color = d.color;
+                    ui.bio.innerText = d.bio; ui.bio.style.color = d.color;
+                    ui.threat.innerText = d.thr; ui.threat.style.color = d.color;
+                    if(d.color === "#ff3333") { ui.threat.style.textShadow = "0 0 20px red"; }
+                    d.action();
+                }, 50);
+            }
+
+            camera.position.x = Math.sin(t*0.2)*0.3; camera.position.y = 1.5 + Math.cos(t*0.15)*0.1; camera.lookAt(0, 1.2, intruder.position.z-3);
+            composer.render(); requestAnimationFrame(animate);
+        }
+
+        function moveTag(el, pos) {
+            const v = pos.clone(); v.project(camera);
+            const x = (v.x*.5+.5)*window.innerWidth; const y = (-(v.y*.5)+.5)*window.innerHeight;
+            el.style.left = `${x}px`; el.style.top = `${y}px`;
+        }
+        function updateTags(op, col="#00ffaa") {
+            Object.values(ui.tags).forEach(t => { t.style.opacity = op; t.style.color = col; t.style.borderColor = col; });
+        }
+
+        window.addEventListener('resize', () => { camera.aspect=window.innerWidth/window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth,window.innerHeight); composer.setSize(window.innerWidth,window.innerHeight); });
+        animate();
+    </script>
+</body>
+</html>

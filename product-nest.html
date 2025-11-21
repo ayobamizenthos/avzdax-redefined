@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AVZDAX | NEST SATELLITE UPLINK</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- ANIMATION -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <!-- THREE.JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- POST PROCESSING -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/RGBShiftShader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/FilmShader.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;600&family=Orbitron:wght@500;900&family=Space+Grotesk:wght@300;700&family=Share+Tech+Mono&display=swap');
+
+        body { margin: 0; background-color: #000; color: #fff; font-family: 'Inter', sans-serif; overflow-x: hidden; }
+
+        /* --- LAYOUT --- */
+        .split-layout { display: flex; position: relative; }
+
+        /* LEFT: THE SATELLITE VIEW */
+        .visualizer-col {
+            width: 50%; height: 100vh; position: sticky; top: 0;
+            background: #000; border-right: 1px solid #333; z-index: 20; overflow: hidden;
+        }
+        #canvas-container { width: 100%; height: 100%; }
+
+        /* RIGHT: CONTENT */
+        .content-col { width: 50%; background: #050505; position: relative; z-index: 10; }
+
+        /* --- HUD UI --- */
+        .hud-overlay {
+            position: absolute; inset: 0; pointer-events: none; padding: 30px;
+            display: flex; flex-direction: column; justify-content: space-between;
+            z-index: 30;
+        }
+        
+        .status-bar {
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(0,0,0,0.7); padding: 10px; border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(5px);
+        }
+        .status-text { font-family: 'Share Tech Mono'; font-size: 11px; color: #00ffaa; letter-spacing: 2px; }
+        .blink { animation: blink 1s infinite; }
+
+        .compass-ring {
+            position: absolute; bottom: 50px; right: 50px; width: 60px; height: 60px;
+            border: 2px solid rgba(255,255,255,0.2); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Orbitron'; font-size: 10px; color: #00ffaa;
+        }
+
+        /* AR MARKERS */
+        .ar-tag {
+            position: absolute; transform: translate(-50%, -50%);
+            display: flex; align-items: center; gap: 10px; opacity: 0;
+        }
+        .tag-box {
+            background: rgba(0, 20, 10, 0.9); border: 1px solid #00ffaa;
+            padding: 5px 10px; font-family: 'Share Tech Mono'; font-size: 10px;
+            color: #00ffaa; box-shadow: 0 0 20px rgba(0,255,170,0.2);
+            white-space: nowrap;
+        }
+        .tag-line { width: 40px; height: 1px; background: #00ffaa; transform-origin: left; }
+
+        /* ALERT STATE */
+        .ar-tag.danger .tag-box { border-color: #ff0000; color: #ff0000; background: rgba(20,0,0,0.9); box-shadow: 0 0 30px red; }
+        .ar-tag.danger .tag-line { background: #ff0000; }
+
+        /* --- TYPOGRAPHY --- */
+        .brand-header {
+            font-family: 'Orbitron'; font-weight: 900; font-size: 5rem; 
+            color: white; line-height: 0.8; letter-spacing: -2px; margin-bottom: 30px;
+            text-shadow: 0 0 30px rgba(255,255,255,0.1);
+        }
+        
+        .section-block {
+            min-height: 80vh; display: flex; flex-direction: column; justify-content: center;
+            padding: 80px; border-bottom: 1px solid #111;
+            transition: opacity 0.3s; opacity: 0.2; 
+        }
+        .section-block.active { opacity: 1; }
+
+        .section-num { 
+            font-family: 'Share Tech Mono'; color: #00ffaa; font-size: 14px; 
+            letter-spacing: 4px; margin-bottom: 10px; display: block;
+        }
+        .section-title {
+            font-family: 'Space Grotesk'; font-weight: 700; font-size: 3rem; 
+            color: white; margin-bottom: 20px; line-height: 1;
+        }
+        .section-desc {
+            font-size: 1.25rem; color: #bbb; line-height: 1.6; max-width: 550px; font-weight: 300;
+        }
+
+        .back-btn { position: fixed; top: 30px; right: 30px; z-index: 999; font-family: 'Share Tech Mono'; color: white; border: 1px solid #333; padding: 8px 16px; background: black; transition: all 0.3s; }
+        .back-btn:hover { border-color: #00ffaa; color: #00ffaa; }
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.2; } }
+
+        /* MOBILE */
+        @media (max-width: 1024px) {
+            .split-layout { flex-direction: column; }
+            .visualizer-col { width: 100%; height: 50vh; }
+            .content-col { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    
+    <a href="products.html" class="back-btn">CLOSE FEED [X]</a>
+
+    <div class="split-layout">
+        
+        <!-- LEFT: SATELLITE FEED -->
+        <div class="visualizer-col">
+            <div id="canvas-container"></div>
+            
+            <div class="hud-overlay">
+                <div class="status-bar">
+                    <div class="status-text">SAT_LINK: <span class="blink">ACTIVE</span></div>
+                    <div class="status-text">LAT: 6.4281° N // LON: 3.4219° E</div>
+                    <div class="status-text text-white">AVZDAX GLOBAL COMMAND</div>
+                </div>
+
+                <div class="compass-ring">N</div>
+
+                <!-- 3D LABELS -->
+                <div class="ar-tag" id="lbl-target">
+                    <div class="tag-box">SECTOR 4: SECURE</div>
+                    <div class="tag-line"></div>
+                </div>
+
+                <div class="ar-tag" id="lbl-drone">
+                    <div class="tag-box" style="border-color: #0088ff; color: #0088ff;">AERIAL UNIT 01</div>
+                    <div class="tag-line" style="background: #0088ff;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT: THE STORY -->
+        <div class="content-col">
+            
+            <div class="p-20 pt-40 pb-20 border-b border-[#111]">
+                <div class="text-gray-500 font-mono text-xs tracking-widest mb-4">RESPONSE INFRASTRUCTURE</div>
+                <h1 class="brand-header">NEST<br>COMMAND</h1>
+                <p class="text-xl text-gray-300 leading-relaxed max-w-lg">
+                    The ultimate failsafe. When AI detects a threat, NEST takes control. A global network of command centers staffed by elite analysts, ready to intervene in seconds.
+                </p>
+            </div>
+
+            <!-- 1 -->
+            <div class="section-block" id="sec-1">
+                <span class="section-num">01 // OVERSIGHT</span>
+                <h2 class="section-title">SATELLITE<br>INTEGRATION</h2>
+                <p class="section-desc">
+                    We don't just see your front door; we see the entire grid. NEST combines on-site cameras with satellite positioning to give responders total situational awareness.
+                </p>
+            </div>
+
+            <!-- 2 -->
+            <div class="section-block" id="sec-2">
+                <span class="section-num">02 // VERIFICATION</span>
+                <h2 class="section-title text-red-500">THREAT<br>CONFIRMED</h2>
+                <p class="section-desc">
+                    Within 3 seconds of an AI trigger, a human analyst verifies the breach. False alarms are filtered out. Real threats are escalated to "Code Red" immediately.
+                </p>
+            </div>
+
+            <!-- 3 -->
+            <div class="section-block" id="sec-3">
+                <span class="section-num">03 // DETERRENCE</span>
+                <h2 class="section-title">AUDIO<br>INTERVENTION</h2>
+                <p class="section-desc">
+                    "You are being watched. Leave immediately." NEST operators project their voice into your facility, scaring off 85% of intruders before they cause damage.
+                </p>
+            </div>
+
+            <!-- 4 -->
+            <div class="section-block" id="sec-4">
+                <span class="section-num">04 // DISPATCH</span>
+                <h2 class="section-title text-blue-400">AERIAL<br>SUPPORT</h2>
+                <p class="section-desc">
+                    For high-value estates, NEST deploys autonomous drones to track fleeing suspects, guiding ground teams to the exact location of the arrest.
+                </p>
+            </div>
+
+            <!-- 5 -->
+            <div class="section-block" id="sec-5">
+                <span class="section-num">05 // RESOLVED</span>
+                <h2 class="section-title">THREAT<br>NEUTRALIZED</h2>
+                <p class="section-desc">
+                    The site is secured. A full forensic report with video evidence is generated instantly for law enforcement and insurance claims.
+                </p>
+            </div>
+
+            <div class="h-40"></div>
+
+        </div>
+    </div>
+
+    <!-- THREE.JS -->
+    <script>
+        gsap.registerPlugin(ScrollTrigger);
+
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color('#000000');
+        scene.fog = new THREE.FogExp2('#000000', 0.015); // Deep distance fog
+
+        const camera = new THREE.PerspectiveCamera(45, container.offsetWidth / container.offsetHeight, 0.1, 1000);
+        camera.position.set(20, 30, 40);
+        camera.lookAt(0, 0, 0);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: false });
+        renderer.setSize(container.offsetWidth, container.offsetHeight);
+        container.appendChild(renderer.domElement);
+
+        // --- FX ---
+        const composer = new THREE.EffectComposer(renderer);
+        composer.addPass(new THREE.RenderPass(scene, camera));
+        
+        const bloom = new THREE.UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
+        bloom.threshold = 0.1; bloom.strength = 0.6; bloom.radius = 0.5;
+        composer.addPass(bloom);
+
+        const rgb = new THREE.ShaderPass(THREE.RGBShiftShader);
+        rgb.uniforms['amount'].value = 0.0015;
+        composer.addPass(rgb);
+
+        // --- ASSETS ---
+
+        // CITY GENERATOR (LiDAR Style)
+        const cityGroup = new THREE.Group();
+        scene.add(cityGroup);
+
+        // Grid
+        const grid = new THREE.GridHelper(200, 80, 0x222222, 0x111111);
+        scene.add(grid);
+
+        // Buildings (Instanced for performance)
+        const buildGeo = new THREE.BoxGeometry(1, 1, 1);
+        buildGeo.translate(0, 0.5, 0);
+        const buildMat = new THREE.MeshStandardMaterial({
+            color: 0x111111, roughness: 0.1, metalness: 0.8,
+            emissive: 0x001122, emissiveIntensity: 0.2
+        });
+        const buildings = new THREE.InstancedMesh(buildGeo, buildMat, 400);
+        cityGroup.add(buildings);
+
+        // Glow Edges for Buildings (The "Hologram" look)
+        const edgeGeo = new THREE.EdgesGeometry(buildGeo);
+        const edgeMat = new THREE.LineBasicMaterial({ color: 0x0044aa, transparent: true, opacity: 0.1 });
+        // Note: Can't instance edges easily, using simple boxes for visual bulk
+        
+        const dummy = new THREE.Object3D();
+        const targetBuildingPos = new THREE.Vector3(0, 0, 0); // Center building
+
+        for(let i=0; i<400; i++) {
+            const x = (Math.random()-0.5) * 150;
+            const z = (Math.random()-0.5) * 150;
+            
+            if(Math.abs(x) < 5 && Math.abs(z) < 5) { // Make center special
+                dummy.position.set(0, 0, 0);
+                dummy.scale.set(6, 10, 6);
+                targetBuildingPos.set(0, 10, 0);
+            } else {
+                const h = Math.random() * 20 + 2;
+                dummy.position.set(x, 0, z);
+                dummy.scale.set(Math.random()*4+1, h, Math.random()*4+1);
+            }
+            dummy.updateMatrix();
+            buildings.setMatrixAt(i, dummy.matrix);
+        }
+        buildings.instanceMatrix.needsUpdate = true;
+
+        // TRAFFIC (Flowing Data)
+        const trafficGeo = new THREE.BufferGeometry();
+        const trafficCount = 1000;
+        const tPos = new Float32Array(trafficCount * 3);
+        const tSpeed = [];
+        for(let i=0; i<trafficCount; i++) {
+            tPos[i*3] = (Math.random()-0.5)*150; // x
+            tPos[i*3+1] = 0.2; // y (hover)
+            tPos[i*3+2] = (Math.random()-0.5)*150; // z
+            tSpeed.push((Math.random()+0.5)*0.2);
+        }
+        trafficGeo.setAttribute('position', new THREE.BufferAttribute(tPos, 3));
+        const trafficMat = new THREE.PointsMaterial({ color: 0xffaa00, size: 0.3 });
+        const traffic = new THREE.Points(trafficGeo, trafficMat);
+        scene.add(traffic);
+
+        // THE TARGET (Red Zone)
+        const targetGeo = new THREE.BoxGeometry(6.2, 10.2, 6.2);
+        targetGeo.translate(0, 5, 0);
+        const targetMat = new THREE.MeshBasicMaterial({ color: 0xff0000, wireframe: true, transparent: true, opacity: 0 });
+        const targetBox = new THREE.Mesh(targetGeo, targetMat);
+        scene.add(targetBox);
+
+        // THE DRONE (Blue Unit)
+        const droneGroup = new THREE.Group();
+        const dBody = new THREE.Mesh(new THREE.ConeGeometry(0.5, 2, 4), new THREE.MeshBasicMaterial({ color: 0x0088ff }));
+        dBody.rotation.x = Math.PI/2;
+        droneGroup.add(dBody);
+        
+        // Drone Spotlight
+        const spot = new THREE.SpotLight(0xffffff, 0, 100, 0.5, 0.5, 1);
+        spot.target = targetBox;
+        droneGroup.add(spot);
+        
+        droneGroup.position.set(-40, 20, 40); // Start away
+        droneGroup.lookAt(0, 5, 0);
+        scene.add(droneGroup);
+
+        // SHOCKWAVE (Voice Down)
+        const waveGeo = new THREE.RingGeometry(0.1, 0.5, 32);
+        const waveMat = new THREE.MeshBasicMaterial({ color: 0xffaa00, side: THREE.DoubleSide, transparent: true, opacity: 0 });
+        const wave = new THREE.Mesh(waveGeo, waveMat);
+        wave.rotation.x = -Math.PI/2;
+        wave.position.y = 10.5; // Top of building
+        scene.add(wave);
+
+        // LIGHTS
+        const ambient = new THREE.AmbientLight(0x222222); scene.add(ambient);
+        const dirLight = new THREE.DirectionalLight(0x0044ff, 1); dirLight.position.set(50, 50, 50); scene.add(dirLight);
+
+        // --- LOGIC ---
+        const lblTarget = document.getElementById('lbl-target');
+        const boxTarget = lblTarget.querySelector('.tag-box');
+        const lblDrone = document.getElementById('lbl-drone');
+        const sections = document.querySelectorAll('.section-block');
+
+        sections.forEach((sec, i) => {
+            ScrollTrigger.create({
+                trigger: sec,
+                start: "top center",
+                end: "bottom center",
+                onEnter: () => setPhase(i),
+                onEnterBack: () => setPhase(i),
+                onLeave: () => sec.classList.remove('active'),
+                onLeaveBack: () => sec.classList.remove('active')
+            });
+        });
+
+        function setPhase(i) {
+            sections.forEach(s => s.classList.remove('active'));
+            sections[i].classList.add('active');
+
+            // Reset
+            targetMat.opacity = 0; 
+            lblTarget.style.opacity = 0; lblTarget.classList.remove('danger');
+            boxTarget.innerText = "SECTOR 4: SECURE";
+            wave.material.opacity = 0;
+            droneGroup.position.set(-40, 20, 40);
+            lblDrone.style.opacity = 0;
+            spot.intensity = 0;
+
+            if(i === 0) { // MONITOR
+                gsap.to(camera.position, { x: 20, y: 30, z: 40, duration: 2 });
+                lblTarget.style.opacity = 1;
+            }
+            else if(i === 1) { // DETECT
+                gsap.to(camera.position, { x: 0, y: 15, z: 20, duration: 1.5 });
+                targetMat.opacity = 0.5;
+                lblTarget.style.opacity = 1;
+                lblTarget.classList.add('danger');
+                boxTarget.innerText = "⚠️ INCIDENT IN PROGRESS";
+            }
+            else if(i === 2) { // VOICE
+                gsap.to(camera.position, { x: 5, y: 12, z: 10, duration: 1.5 });
+                targetMat.opacity = 0.5; lblTarget.style.opacity = 1; lblTarget.classList.add('danger');
+                wave.material.opacity = 1; // Pulse in loop
+            }
+            else if(i === 3) { // DISPATCH
+                targetMat.opacity = 0.5; lblTarget.style.opacity = 1; lblTarget.classList.add('danger');
+                lblDrone.style.opacity = 1;
+                // Fly drone in
+                gsap.to(droneGroup.position, { x: -10, y: 15, z: 10, duration: 2, ease: "power2.out" });
+                spot.intensity = 2;
+                gsap.to(camera.position, { x: -5, y: 15, z: 25, duration: 2 });
+            }
+            else if(i === 4) { // RESOLVE
+                gsap.to(camera.position, { x: 0, y: 40, z: 0, duration: 2 }); // Top down victory view
+                lblTarget.style.opacity = 1;
+                boxTarget.innerText = "✓ THREAT NEUTRALIZED";
+                droneGroup.position.set(-10, 15, 10);
+                lblDrone.style.opacity = 1;
+                spot.intensity = 2;
+            }
+        }
+
+        // --- LOOP ---
+        const clock = new THREE.Clock();
+
+        function animate() {
+            const t = clock.getElapsedTime();
+
+            // Orbit Camera (Slight)
+            if(!sections[4].classList.contains('active')) {
+                camera.position.x += Math.sin(t*0.5)*0.05;
+            }
+
+            // Traffic Flow
+            const pos = traffic.geometry.attributes.position.array;
+            for(let i=0; i<trafficCount; i++) {
+                if(i%2===0) { // X axis movement
+                    pos[i*3] += tSpeed[i];
+                    if(pos[i*3] > 75) pos[i*3] = -75;
+                } else { // Z axis
+                    pos[i*3+2] += tSpeed[i];
+                    if(pos[i*3+2] > 75) pos[i*3+2] = -75;
+                }
+            }
+            traffic.geometry.attributes.position.needsUpdate = true;
+
+            // Wave Pulse
+            if(wave.material.opacity > 0) {
+                const s = (t * 3) % 10;
+                wave.scale.set(s, s, 1);
+                wave.material.opacity = 1 - (s/10);
+            }
+
+            // Drone Hover
+            droneGroup.position.y += Math.sin(t*2)*0.02;
+            droneGroup.lookAt(0, 5, 0);
+
+            // Update Labels
+            updateLabel(lblTarget, targetBox);
+            updateLabel(lblDrone, droneGroup);
+
+            composer.render();
+            requestAnimationFrame(animate);
+        }
+
+        function updateLabel(el, obj) {
+            const vec = new THREE.Vector3();
+            obj.getWorldPosition(vec);
+            vec.y += 5; // Offset
+            vec.project(camera);
+            const x = (vec.x * .5 + .5) * container.offsetWidth;
+            const y = (-(vec.y * .5) + .5) * container.offsetHeight;
+            el.style.left = `${x}px`; el.style.top = `${y}px`;
+        }
+
+        window.addEventListener('resize', () => {
+            camera.aspect = container.offsetWidth / container.offsetHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.offsetWidth, container.offsetHeight);
+            composer.setSize(container.offsetWidth, container.offsetHeight);
+        });
+
+        animate();
+    </script>
+</body>
+</html>

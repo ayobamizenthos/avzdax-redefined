@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AVZDAX | PROTOCOLS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Orbitron:wght@500;700&family=Share+Tech+Mono&display=swap');
+
+        body { 
+            margin: 0; background-color: #020202; color: #ccc; 
+            font-family: 'Inter', sans-serif; overflow-x: hidden;
+        }
+
+        /* --- BACKGROUND --- */
+        .noise {
+            position: fixed; inset: 0; opacity: 0.03; pointer-events: none; z-index: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+        .watermark {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg);
+            font-family: 'Orbitron'; font-size: 10vw; color: rgba(255,255,255,0.02);
+            pointer-events: none; white-space: nowrap; z-index: 0;
+        }
+
+        /* --- LAYOUT --- */
+        .legal-container {
+            max-width: 1400px; margin: 0 auto; display: grid; grid-template-columns: 300px 1fr;
+            gap: 80px; padding: 100px 5vw; position: relative; z-index: 10;
+        }
+
+        /* --- SIDEBAR (Sticky) --- */
+        .sidebar {
+            position: sticky; top: 100px; align-self: start; height: auto;
+            border-left: 1px solid #333; padding-left: 20px;
+        }
+        .nav-item {
+            display: block; font-family: 'Share Tech Mono'; font-size: 12px; color: #666;
+            margin-bottom: 15px; text-decoration: none; transition: all 0.3s; letter-spacing: 1px;
+        }
+        .nav-item:hover, .nav-item.active { color: #00ffaa; padding-left: 10px; border-left: 2px solid #00ffaa; margin-left: -22px; }
+
+        /* --- CONTENT --- */
+        .doc-header {
+            font-family: 'Orbitron'; font-size: 3rem; font-weight: 700; color: white; margin-bottom: 10px;
+        }
+        .doc-meta {
+            font-family: 'Share Tech Mono'; color: #00ffaa; font-size: 12px; margin-bottom: 60px;
+            border-bottom: 1px solid #333; padding-bottom: 20px;
+        }
+
+        .legal-block { margin-bottom: 60px; }
+        .legal-title {
+            font-family: 'Orbitron'; font-size: 1.5rem; color: white; margin-bottom: 20px;
+        }
+        .legal-text {
+            font-size: 1rem; line-height: 1.7; color: #aaa; margin-bottom: 20px;
+        }
+        .legal-text strong { color: white; font-weight: 600; }
+        
+        .highlight-box {
+            background: rgba(0, 255, 170, 0.05); border: 1px solid rgba(0, 255, 170, 0.2);
+            padding: 20px; margin: 30px 0; font-family: 'Share Tech Mono'; font-size: 12px;
+            color: #00ffaa;
+        }
+
+        /* --- FOOTER --- */
+        .doc-footer {
+            margin-top: 100px; border-top: 1px solid #333; padding-top: 40px;
+            font-family: 'Share Tech Mono'; font-size: 11px; color: #666;
+            display: flex; justify-content: space-between;
+        }
+
+        @media (max-width: 1024px) {
+            .legal-container { grid-template-columns: 1fr; }
+            .sidebar { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="noise"></div>
+    <div class="watermark">CONFIDENTIAL</div>
+
+    <div class="legal-container">
+        
+        <!-- SIDEBAR NAV -->
+        <aside class="sidebar">
+            <div class="text-xs font-bold text-white mb-6 tracking-widest">DIRECTORY</div>
+            <a href="#privacy" class="nav-item active">01 // PRIVACY POLICY</a>
+            <a href="#data" class="nav-item">02 // DATA SOVEREIGNTY</a>
+            <a href="#terms" class="nav-item">03 // TERMS OF SERVICE</a>
+            <a href="#compliance" class="nav-item">04 // COMPLIANCE</a>
+            
+            <div class="mt-10 text-xs text-gray-600">
+                LAST UPDATED:<br>
+                <span class="text-white">JUNE 16, 2025</span>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main>
+            <h1 class="doc-header">LEGAL PROTOCOLS</h1>
+            <div class="doc-meta">
+                DOC_ID: AVZ-LEG-2025 // CLASS: PUBLIC // ENCRYPTION: NONE
+            </div>
+
+            <!-- SECTION 1: PRIVACY -->
+            <div id="privacy" class="legal-block">
+                <h2 class="legal-title">01 // PRIVACY POLICY</h2>
+                <p class="legal-text">
+                    At AVZDAX Technologies, we treat data privacy as a matter of national security. Unlike traditional surveillance vendors, <strong>we do not sell, trade, or monetize client footage.</strong>
+                </p>
+                <p class="legal-text">
+                    Your data remains your property. Whether stored on-premise via TRION Edge Hardware or in our secure cloud via TELETRAAN, AVZDAX acts solely as the processor, never the controller.
+                </p>
+                <div class="highlight-box">
+                    > NOTE: BIOMETRIC DATA IS HASHED AND ENCRYPTED AT REST (AES-256). WE CANNOT REVERSE-ENGINEER FACIAL DATA TO SOURCE IMAGES.
+                </div>
+            </div>
+
+            <!-- SECTION 2: DATA -->
+            <div id="data" class="legal-block">
+                <h2 class="legal-title">02 // DATA SOVEREIGNTY</h2>
+                <p class="legal-text">
+                    We respect the borders of jurisdiction. Data generated in Nigeria stays in Nigeria. Data generated in the UK stays in the UK.
+                </p>
+                <p class="legal-text">
+                    We utilize region-locked AWS and Azure GovCloud instances to ensure compliance with <strong>NDPR (Nigeria Data Protection Regulation)</strong> and <strong>GDPR</strong> standards. No data packet leaves its origin country without explicit client authorization.
+                </p>
+            </div>
+
+            <!-- SECTION 3: TERMS -->
+            <div id="terms" class="legal-block">
+                <h2 class="legal-title">03 // TERMS OF SERVICE</h2>
+                <p class="legal-text">
+                    By initializing the AVZDAX Protocol (using our hardware or software), you agree to use our technology for <strong>defensive and preventative purposes only</strong>.
+                </p>
+                <p class="legal-text">
+                    AVZDAX reserves the right to remotely terminate service if our AI detects the system is being used for illegal surveillance, harassment, or human rights violations. We build Peace-Tech, not oppression tools.
+                </p>
+            </div>
+
+            <!-- SECTION 4: COMPLIANCE -->
+            <div id="compliance" class="legal-block">
+                <h2 class="legal-title">04 // COMPLIANCE & AUDIT</h2>
+                <p class="legal-text">
+                    Our systems undergo quarterly penetration testing by independent third-party security firms. 
+                </p>
+                <p class="legal-text">
+                    For Enterprise and Government clients, we offer full <strong>Transparency Logs</strong>. Every action taken by a NEST operator or an Admin user is immutably recorded on a private ledger for audit purposes.
+                </p>
+            </div>
+
+            <!-- SIGNATURE -->
+            <div class="doc-footer">
+                <div>
+                    APPROVED BY:<br>
+                    LEGAL DEPARTMENT
+                </div>
+                <div class="text-right">
+                    AVZDAX TECHNOLOGIES LTD.<br>
+                    RC: 1299381
+                </div>
+            </div>
+
+        </main>
+
+    </div>
+
+    <script>
+        // SIMPLE SCROLL SPY
+        const sections = document.querySelectorAll('.legal-block');
+        const navItems = document.querySelectorAll('.nav-item');
+
+        window.addEventListener('scroll', () => {
+            let current = '';
+            
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                const sectionHeight = section.clientHeight;
+                if (pageYOffset >= (sectionTop - 200)) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navItems.forEach(li => {
+                li.classList.remove('active');
+                if (li.getAttribute('href').includes(current)) {
+                    li.classList.add('active');
+                }
+            });
+        });
+    </script>
+
+    <!-- ================================================== -->
+<!-- GLOBAL COMMS UPLINK (FIXED VERSION) -->
+<!-- ================================================== -->
+
+<style>
+    /* CHAT BUTTON */
+    #uplink-btn {
+        position: fixed; bottom: 30px; right: 30px; z-index: 99999; /* Increased Z-Index */
+        width: 60px; height: 60px; background: rgba(0, 0, 0, 0.9);
+        border: 1px solid #00ffaa; border-radius: 50%; cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 0 20px rgba(0, 255, 170, 0.2);
+        transition: all 0.3s ease; backdrop-filter: blur(10px);
+        pointer-events: auto; /* Force clickable */
+    }
+    #uplink-btn:hover { transform: scale(1.1); box-shadow: 0 0 40px rgba(0, 255, 170, 0.6); background: #00ffaa; }
+    #uplink-btn:hover svg { stroke: black; } /* Invert icon color on hover */
+    
+    /* Pulse Animation */
+    .pulse-ring {
+        position: absolute; width: 100%; height: 100%; border-radius: 50%;
+        border: 1px solid #00ffaa; opacity: 0; animation: pulseOut 2s infinite; pointer-events: none;
+    }
+    @keyframes pulseOut { 0% { transform: scale(1); opacity: 0.5; } 100% { transform: scale(2.5); opacity: 0; } }
+
+    /* CHAT WINDOW */
+    #uplink-terminal {
+        position: fixed; bottom: 100px; right: 30px; width: 350px; height: 500px;
+        background: rgba(5, 5, 5, 0.98); border: 1px solid #333; border-left: 4px solid #00ffaa;
+        z-index: 99999; display: flex; flex-direction: column;
+        transform: translateY(20px) scale(0.95); opacity: 0; pointer-events: none;
+        transition: all 0.3s cubic-bezier(0.19, 1, 0.22, 1);
+        box-shadow: 0 20px 50px black; visibility: hidden;
+    }
+    #uplink-terminal.active { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; visibility: visible; }
+
+    /* HEADER */
+    .term-header {
+        padding: 15px; border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center;
+        background: linear-gradient(to right, rgba(0,255,170,0.1), transparent);
+    }
+    .term-title { font-family: 'Orbitron', sans-serif; color: white; font-weight: 700; font-size: 12px; letter-spacing: 1px; }
+    .term-status { font-family: monospace; color: #00ffaa; font-size: 10px; display: flex; align-items: center; gap: 5px; }
+    .status-dot { width: 6px; height: 6px; background: #00ffaa; border-radius: 50%; animation: blink 1s infinite; }
+
+    /* BODY */
+    .term-body {
+        flex-grow: 1; padding: 20px; overflow-y: auto; font-family: monospace; font-size: 12px;
+        display: flex; flex-direction: column; gap: 15px;
+    }
+    .msg { padding: 10px; border-radius: 4px; max-width: 85%; line-height: 1.4; }
+    .msg-sys { color: #888; font-size: 10px; text-align: center; margin-bottom: 10px; }
+    .msg-bot { background: rgba(0, 255, 170, 0.05); border-left: 2px solid #00ffaa; color: #00ffaa; align-self: flex-start; }
+    .msg-user { background: #222; color: white; align-self: flex-end; border-right: 2px solid #666; }
+
+    /* INPUT */
+    .term-input {
+        padding: 15px; border-top: 1px solid #222; display: flex; gap: 10px; background: #000;
+    }
+    .chat-field {
+        width: 100%; background: transparent; border: none; color: white; font-family: monospace;
+        outline: none; font-size: 12px;
+    }
+    .send-btn { color: #00ffaa; font-size: 18px; cursor: pointer; transition: transform 0.2s; }
+    .send-btn:hover { transform: translateX(3px); }
+
+</style>
+
+<!-- BUTTON -->
+<div id="uplink-btn" onclick="window.toggleChat()">
+    <div class="pulse-ring"></div>
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00ffaa" stroke-width="2">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+    </svg>
+</div>
+
+<!-- TERMINAL WINDOW -->
+<div id="uplink-terminal">
+    <div class="term-header">
+        <div class="term-title">LIVE SUPPORT</div>
+        <div class="term-status"><div class="status-dot"></div> ENCRYPTED</div>
+    </div>
+    
+    <div class="term-body" id="term-log">
+        <div class="msg-sys">ESTABLISHING SECURE HANDSHAKE...<br>CONNECTION ID: 992-X</div>
+    </div>
+    
+    <div class="term-input">
+        <span style="color: #00ffaa;">></span>
+        <input type="text" class="chat-field" id="term-input" placeholder="ENTER COMMAND..." onkeypress="window.handleChat(event)">
+        <div class="send-btn" onclick="window.sendChat()">→</div>
+    </div>
+</div>
+
+<!-- STANDARD SCRIPT (NOT MODULE) TO ENSURE GLOBAL ACCESS -->
+<script>
+    // We wrap this in a standard script tag so 'window' can access these functions
+    (function() {
+        let isChatOpen = false;
+        const terminal = document.getElementById('uplink-terminal');
+        const log = document.getElementById('term-log');
+        const input = document.getElementById('term-input');
+
+        // Expose function to global window object
+        window.toggleChat = function() {
+            isChatOpen = !isChatOpen;
+            if (isChatOpen) {
+                terminal.classList.add('active');
+                // Auto-greeting if empty
+                if (log.children.length < 2) {
+                    setTimeout(() => botType("AVZDAX COMMAND ONLINE."), 500);
+                    setTimeout(() => botType("How can we assist you?"), 1500);
+                }
+            } else {
+                terminal.classList.remove('active');
+            }
+        };
+
+        window.handleChat = function(e) {
+            if (e.key === 'Enter') window.sendChat();
+        };
+
+        window.sendChat = function() {
+            const txt = input.value.trim();
+            if (!txt) return;
+            
+            // Add User Msg
+            const msg = document.createElement('div');
+            msg.className = 'msg msg-user';
+            msg.innerText = txt;
+            log.appendChild(msg);
+            input.value = '';
+            
+            // Auto-Scroll
+            log.scrollTop = log.scrollHeight;
+
+            // Bot Reply Simulation
+            setTimeout(() => {
+                botType("Request received. An operator has been notified.");
+            }, 1000);
+        };
+
+        function botType(text) {
+            const msg = document.createElement('div');
+            msg.className = 'msg msg-bot';
+            msg.innerText = text;
+            log.appendChild(msg);
+            log.scrollTop = log.scrollHeight;
+        }
+    })();
+</script>
+</body>
+</html>

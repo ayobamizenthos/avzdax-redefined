@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AVZDAX | PREDICTIVE SECURITY</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Share+Tech+Mono&display=swap');
+
+        body { 
+            margin: 0; background-color: #000; overflow: hidden; 
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        /* --- PRELOADER --- */
+        #preloader {
+            position: fixed; inset: 0; background: #000; z-index: 9999;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            color: #00ffaa; transition: opacity 0.5s ease-out;
+        }
+        .loader-text {
+            font-family: 'Orbitron'; font-size: 2rem; letter-spacing: 5px; margin-bottom: 20px;
+        }
+        .loader-bar-bg {
+            width: 300px; height: 2px; background: #111; position: relative;
+        }
+        .loader-bar-fill {
+            position: absolute; top: 0; left: 0; height: 100%; width: 0%;
+            background: #00ffaa; box-shadow: 0 0 20px #00ffaa;
+            transition: width 0.1s linear;
+        }
+        .loader-log {
+            margin-top: 10px; font-size: 10px; color: #444; font-family: monospace;
+        }
+
+        /* --- NAVIGATION --- */
+        .nav-layer {
+            position: fixed; top: 0; left: 0; width: 100%; height: 80px;
+            z-index: 500; display: flex; justify-content: space-between; align-items: center;
+            padding: 0 50px; pointer-events: none; mix-blend-mode: exclusion;
+        }
+
+        .brand {
+            font-family: 'Orbitron'; font-weight: 900; font-size: 1.5rem; color: white;
+            pointer-events: auto; cursor: pointer; text-decoration: none;
+        }
+        
+        .menu { display: flex; gap: 30px; pointer-events: auto; }
+        
+        .menu-item {
+            color: white; text-decoration: none; font-size: 12px; letter-spacing: 2px;
+            position: relative; transition: color 0.3s; cursor: pointer; font-weight: 700;
+        }
+        .menu-item::after {
+            content: ''; position: absolute; bottom: -5px; left: 0; width: 0%; height: 1px;
+            background: #00ffaa; transition: width 0.3s;
+        }
+        .menu-item:hover { color: #00ffaa; }
+        .menu-item:hover::after { width: 100%; }
+
+        /* --- SCROLL CONTAINER --- */
+        .main-container {
+            height: 100vh; width: 100vw; overflow-y: scroll; scroll-behavior: smooth;
+            scroll-snap-type: y mandatory;
+        }
+
+        .frame-section {
+            height: 100vh; width: 100vw; scroll-snap-align: start; position: relative; border: none;
+        }
+
+        iframe {
+            width: 100%; height: 100%; border: none; display: block;
+            overflow: hidden; pointer-events: auto;
+        }
+        
+        .main-container::-webkit-scrollbar { width: 0px; background: transparent; }
+
+        /* --- CURSOR --- */
+        #cursor {
+            width: 20px; height: 20px; border: 1px solid #00ffaa;
+            border-radius: 50%; position: fixed; pointer-events: none; z-index: 1000;
+            transform: translate(-50%, -50%); transition: transform 0.1s;
+        }
+
+
+
+
+
+
+
+        /* --- HOLLYWOOD PRELOADER CSS --- */
+#cinematic-boot {
+    position: fixed; inset: 0; z-index: 99999;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    background: #000; overflow: hidden;
+    font-family: 'Share Tech Mono', monospace;
+}
+
+/* The "Blast Doors" for the exit animation */
+.shutter-panel {
+    position: absolute; left: 0; width: 100%; height: 50%;
+    background: #020202; z-index: 10;
+    border-bottom: 1px solid #111;
+    transition: transform 0.8s cubic-bezier(0.8, 0, 0.2, 1);
+}
+.shutter-top { top: 0; border-bottom: 1px solid #00ffaa; }
+.shutter-btm { bottom: 0; border-top: 1px solid #00ffaa; }
+
+/* When active, doors open */
+#cinematic-boot.loaded .shutter-top { transform: translateY(-100%); }
+#cinematic-boot.loaded .shutter-btm { transform: translateY(100%); }
+#cinematic-boot.loaded .boot-content { opacity: 0; transition: 0.3s; }
+
+/* Content Layer */
+.boot-content { position: relative; z-index: 20; text-align: center; width: 100%; max-width: 400px; }
+
+/* Glitch Logo */
+.decrypt-text {
+    font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 3.5rem;
+    color: white; letter-spacing: 8px; margin-bottom: 10px;
+    text-shadow: 0 0 20px rgba(0, 255, 170, 0.5);
+}
+
+/* Progress Bar */
+.loader-frame {
+    width: 100%; height: 4px; background: #111; margin: 20px 0;
+    position: relative; overflow: hidden; border: 1px solid #333;
+}
+.loader-fill {
+    width: 0%; height: 100%; background: #00ffaa;
+    box-shadow: 0 0 15px #00ffaa;
+    transition: width 0.1s linear;
+}
+
+/* System Logs */
+.sys-log {
+    font-size: 11px; color: #00ffaa; text-align: left;
+    height: 60px; overflow: hidden; opacity: 0.8;
+    border-left: 2px solid #00ffaa; padding-left: 10px;
+}
+.log-line { display: block; margin-bottom: 4px; }
+.highlight { color: white; background: #00ffaa; color: black; padding: 0 4px; }
+    </style>
+</head>
+<body>
+
+    <!-- PRELOADER -->
+    <!-- CINEMATIC BOOT SEQUENCE -->
+<div id="cinematic-boot">
+    <div class="shutter-panel shutter-top"></div>
+    <div class="shutter-panel shutter-btm"></div>
+    
+    <div class="boot-content">
+        <div class="decrypt-text" id="main-logo">SYSTEM_INIT</div>
+        <div class="loader-frame">
+            <div class="loader-fill" id="boot-bar"></div>
+        </div>
+        <div class="sys-log" id="terminal-log">
+            <!-- Logs injected by JS -->
+        </div>
+    </div>
+</div>
+
+    <div id="cursor"></div>
+
+    <!-- NAV BAR -->
+    <nav class="nav-layer">
+        <a href="index.html" class="brand">AVZDAX</a>
+        
+        <div class="menu">
+            <!-- Internal Scroll -->
+            <a class="menu-item" href="index.html">INTELLIGENCE</a>
+            
+            <!-- External Pages -->
+             <a class="menu-item" href="about.html">MISSION</a>
+            <a class="menu-item" href="products.html">PRODUCTS</a>
+            <a class="menu-item" href="industries.html">INDUSTRIES</a>
+            <a class="menu-item" href="newsroom.html">NEWSROOM</a>
+            <a class="menu-item" href="careers.html">CAREERS</a>
+            <a class="menu-item" href="contact.html">CONTACT</a>
+        </div>
+    </nav>
+
+    <!-- SECTIONS -->
+    <div class="main-container" id="scroller">
+        
+        <!-- 1. HERO -->
+        <div class="frame-section">
+            <iframe src="section-1.html" loading="eager" scrolling="no"></iframe>
+        </div>
+
+        <!-- 2. ABOUT (Dossier) -->
+        <div class="frame-section">
+            <iframe src="section1b.html" loading="lazy" scrolling="no"></iframe>
+        </div>
+
+        <!-- 2b. TUNNEL (Dossier) -->
+        <div class="frame-section" id="section2">
+            <iframe src="section-2.html"></iframe>
+        </div>
+
+        <!-- 3. LIVE OPS (Simulation) -->
+        <div class="frame-section">
+            <iframe src="section-3.html" loading="lazy" scrolling="no"></iframe>
+        </div>
+
+        <!-- 4. FOOTER (Global Network) -->
+        <div class="frame-section">
+            <iframe src="section-4.html" loading="lazy" scrolling="no"></iframe>
+        </div>
+
+    </div>
+
+    
+    <script>
+    // --- CONFIGURATION ---
+    const LOGO_TEXT = "AVZDAX";
+    const BOOT_DURATION = 3500; // 3.5 seconds total load time
+    const CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&";
+    
+    // DOM ELEMENTS
+    const bootScreen = document.getElementById('cinematic-boot');
+    const logoEl = document.getElementById('main-logo');
+    const barEl = document.getElementById('boot-bar');
+    const logEl = document.getElementById('terminal-log');
+
+    // --- 1. TEXT DECRYPTOR EFFECT ---
+    function scrambleText(targetText, duration) {
+        let iterations = 0;
+        const interval = setInterval(() => {
+            logoEl.innerText = targetText
+                .split("")
+                .map((letter, index) => {
+                    if (index < iterations) return targetText[index];
+                    return CHARS[Math.floor(Math.random() * CHARS.length)];
+                })
+                .join("");
+
+            if (iterations >= targetText.length) { 
+                clearInterval(interval);
+                logoEl.style.color = "#fff";
+                logoEl.style.textShadow = "0 0 30px rgba(255,255,255,0.8)";
+            }
+            iterations += 1 / 3; // Speed of decryption
+        }, 30);
+    }
+
+    // --- 2. TERMINAL LOGS GENERATOR ---
+    const sysMessages = [
+        "INITIALIZING CORE KERNEL...",
+        "LOADING NEURAL MESH V9.0...",
+        "CONNECTING TO LAGOS_HQ...",
+        "ENCRYPTING UPLINK (AES-256)...",
+        "BYPASSING FIREWALL...",
+        "TRION OPTICS: ONLINE",
+        "TELETRAAN OS: SYNCHRONIZED",
+        "<span class='highlight'>ACCESS GRANTED</span>"
+    ];
+
+    function runLogs() {
+        let i = 0;
+        const logInterval = setInterval(() => {
+            if (i >= sysMessages.length) {
+                clearInterval(logInterval);
+                return;
+            }
+            const line = document.createElement('span');
+            line.className = 'log-line';
+            line.innerHTML = `> ${sysMessages[i]}`;
+            logEl.appendChild(line);
+            logEl.scrollTop = logEl.scrollHeight; // Auto scroll
+            i++;
+        }, BOOT_DURATION / sysMessages.length);
+    }
+
+    // --- 3. MAIN BOOT SEQUENCE ---
+    window.addEventListener('load', () => {
+        // A. Check if already seen (Session Storage)
+        if(sessionStorage.getItem('boot_shown')) {
+            bootScreen.style.display = 'none';
+            return;
+        }
+
+        // B. Start Animation
+        scrambleText(LOGO_TEXT, 1500);
+        runLogs();
+
+        // C. Progress Bar
+        let width = 0;
+        const barInterval = setInterval(() => {
+            if (width >= 100) {
+                clearInterval(barInterval);
+                finishBoot();
+            } else {
+                width += 1;
+                barEl.style.width = width + '%';
+            }
+        }, BOOT_DURATION / 100);
+    });
+
+    function finishBoot() {
+        // Add 'loaded' class to trigger CSS blast door animation
+        bootScreen.classList.add('loaded');
+        
+        // Save session
+        sessionStorage.setItem('boot_shown', 'true');
+
+        // Remove from DOM after animation
+        setTimeout(() => {
+            bootScreen.style.display = 'none';
+        }, 1000);
+    }
+</script>
+
+    <!-- ================================================== -->
+<!-- GLOBAL COMMS UPLINK V4 (HOLOGRAPHIC NODE) -->
+<!-- ================================================== -->
+
+<style>
+    /* IMPORT FONTS (Ensure visibility) */
+    @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@500;900&display=swap');
+
+    /* --- 1. THE HOLOGRAPHIC TRIGGER --- */
+    #uplink-wrapper {
+        position: fixed; bottom: 40px; right: 40px; z-index: 999999;
+        display: flex; align-items: center; gap: 15px; pointer-events: none; /* Wrapper doesn't block clicks */
+    }
+
+    /* The Status Label (Floating Text) */
+    .uplink-label {
+        background: rgba(0, 0, 0, 0.8); border: 1px solid #00ffaa;
+        color: #00ffaa; font-family: 'Share Tech Mono', monospace; font-size: 10px;
+        padding: 6px 12px; border-radius: 4px; pointer-events: auto;
+        backdrop-filter: blur(10px); letter-spacing: 1px;
+        box-shadow: 0 0 15px rgba(0, 255, 170, 0.1);
+        transform: translateX(10px); opacity: 0; transition: all 0.3s ease;
+    }
+    #uplink-wrapper:hover .uplink-label { opacity: 1; transform: translateX(0); }
+
+    /* The Orb Button */
+    #uplink-btn {
+        width: 70px; height: 70px; cursor: pointer; pointer-events: auto;
+        border-radius: 50%; position: relative;
+        background: radial-gradient(circle at 30% 30%, #222, #000);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.8), inset 0 0 20px rgba(0,255,170,0.1);
+        display: flex; align-items: center; justify-content: center;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    
+    #uplink-btn:hover { 
+        transform: scale(1.1); 
+        border-color: #00ffaa;
+        box-shadow: 0 0 40px rgba(0, 255, 170, 0.4), inset 0 0 30px rgba(0,255,170,0.2);
+    }
+
+    /* Internal Icon */
+    .chat-icon { color: white; transition: 0.3s; filter: drop-shadow(0 0 5px rgba(255,255,255,0.5)); }
+    #uplink-btn:hover .chat-icon { color: #00ffaa; filter: drop-shadow(0 0 8px #00ffaa); }
+
+    /* Pulse Ring Animation */
+    .pulse-emitter {
+        position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+        width: 100%; height: 100%; border-radius: 50%; border: 1px solid #00ffaa;
+        animation: sonarWave 2s infinite; opacity: 0; pointer-events: none;
+    }
+    @keyframes sonarWave { 
+        0% { width: 100%; height: 100%; opacity: 0.8; border-width: 2px; }
+        100% { width: 250%; height: 250%; opacity: 0; border-width: 0px; } 
+    }
+
+
+    /* --- 2. THE COMMAND INTERFACE --- */
+    #uplink-window {
+        position: fixed; bottom: 130px; right: 40px; width: 400px; height: 600px;
+        background: rgba(10, 12, 14, 0.95); 
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-top: 4px solid #00ffaa;
+        z-index: 999999; display: flex; flex-direction: column;
+        transform-origin: bottom right;
+        transform: scale(0.9) translateY(20px); opacity: 0; pointer-events: none;
+        transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+        box-shadow: 0 20px 60px rgba(0,0,0,0.9);
+        border-radius: 12px; overflow: hidden;
+        font-family: 'Share Tech Mono', monospace;
+    }
+    #uplink-window.active { transform: scale(1) translateY(0); opacity: 1; pointer-events: auto; }
+
+    /* Glass & Grain FX */
+    #uplink-window::before {
+        content: ""; position: absolute; inset: 0; pointer-events: none; z-index: -1;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+        opacity: 0.5;
+    }
+    #uplink-window::after {
+        content: ""; position: absolute; inset: 0; pointer-events: none; z-index: -2;
+        backdrop-filter: blur(20px);
+    }
+
+    /* HEADER */
+    .term-header {
+        padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.1);
+        background: linear-gradient(to bottom, rgba(255,255,255,0.05), transparent);
+        display: flex; justify-content: space-between; align-items: center;
+    }
+    .term-brand { font-family: 'Orbitron'; color: white; font-weight: 900; font-size: 14px; letter-spacing: 1px; }
+    .term-signal { 
+        font-size: 10px; color: #00ffaa; display: flex; align-items: center; gap: 6px; 
+        text-shadow: 0 0 10px rgba(0, 255, 170, 0.5);
+    }
+    .signal-bars { display: flex; gap: 2px; align-items: flex-end; height: 10px; }
+    .bar { width: 3px; background: #00ffaa; }
+    .b1 { height: 4px; opacity: 0.4; } .b2 { height: 7px; opacity: 0.7; } .b3 { height: 10px; }
+
+    /* FEED */
+    .term-feed {
+        flex-grow: 1; padding: 20px; overflow-y: auto;
+        display: flex; flex-direction: column; gap: 15px;
+        /* Scanline Background */
+        background: linear-gradient(to bottom, rgba(0,0,0,0) 50%, rgba(0,0,0,0.2) 50%);
+        background-size: 100% 4px;
+    }
+    .term-feed::-webkit-scrollbar { width: 4px; }
+    .term-feed::-webkit-scrollbar-thumb { background: #333; }
+
+    /* MESSAGES */
+    .log-row { font-size: 12px; line-height: 1.5; display: flex; flex-direction: column; }
+    .log-meta { font-size: 9px; color: #555; margin-bottom: 2px; }
+    
+    .sys-msg { color: #00ffaa; text-shadow: 0 0 5px rgba(0, 255, 170, 0.3); }
+    .usr-msg { color: white; text-align: right; align-self: flex-end; background: rgba(255,255,255,0.1); padding: 8px 12px; border-radius: 4px; display: inline-block; border: 1px solid rgba(255,255,255,0.2); }
+
+    /* INPUT */
+    .term-input-area {
+        padding: 20px; border-top: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.6);
+        display: flex; align-items: center; gap: 10px;
+    }
+    .cursor { color: #00ffaa; animation: blink 1s infinite; }
+    .input-cmd {
+        width: 100%; background: transparent; border: none; outline: none;
+        color: white; font-family: 'Share Tech Mono'; font-size: 14px;
+    }
+    .tx-btn {
+        font-size: 10px; color: #00ffaa; border: 1px solid #00ffaa; padding: 5px 10px;
+        cursor: pointer; transition: all 0.2s;
+    }
+    .tx-btn:hover { background: #00ffaa; color: black; }
+
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+    /* MOBILE */
+    @media (max-width: 768px) {
+        #uplink-window { width: 90%; right: 5%; bottom: 110px; height: 60vh; }
+    }
+</style>
+
+<!-- TRIGGER -->
+<div id="uplink-wrapper">
+    <div class="uplink-label">SYSTEM ONLINE</div>
+    <div id="uplink-btn" onclick="window.toggleUplink()">
+        <div class="pulse-emitter"></div>
+        <svg class="chat-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+    </div>
+</div>
+
+<!-- TERMINAL -->
+<div id="uplink-window">
+    <div class="term-header">
+        <div class="term-brand">AVZDAX COMMAND</div>
+        <div class="term-signal">
+            <div class="signal-bars"><div class="bar b1"></div><div class="bar b2"></div><div class="bar b3"></div></div>
+            LINK_ESTABLISHED
+        </div>
+    </div>
+
+    <div class="term-feed" id="console-feed">
+        <div class="log-row">
+            <span class="log-meta">SYS_INIT // [12:01:42]</span>
+            <span class="sys-msg">> ENCRYPTED CHANNEL OPEN.</span>
+        </div>
+    </div>
+
+    <div class="term-input-area">
+        <span class="cursor">></span>
+        <input type="text" id="cmd-input" class="input-cmd" placeholder="ENTER QUERY..." onkeypress="window.handleKey(event)">
+        <div class="tx-btn" onclick="window.transmit()">SEND</div>
+    </div>
+</div>
+
+<!-- LOGIC -->
+<script>
+    (function() {
+        let isOpen = false;
+        const win = document.getElementById('uplink-window');
+        const feed = document.getElementById('console-feed');
+        const input = document.getElementById('cmd-input');
+
+        window.toggleUplink = function() {
+            isOpen = !isOpen;
+            if (isOpen) {
+                win.classList.add('active');
+                if (feed.children.length < 2) {
+                    setTimeout(() => sysType("OPERATOR_04 has joined the session."), 600);
+                    setTimeout(() => sysType("How may we secure your operations?"), 1500);
+                }
+            } else {
+                win.classList.remove('active');
+            }
+        };
+
+        window.handleKey = function(e) {
+            if (e.key === 'Enter') window.transmit();
+        };
+
+        window.transmit = function() {
+            const txt = input.value.trim();
+            if (!txt) return;
+
+            // User Msg
+            addLog(txt, true);
+            input.value = '';
+            feed.scrollTop = feed.scrollHeight;
+
+            // Bot Logic
+            setTimeout(() => {
+                sysType("Processing inquiry...");
+            }, 600);
+            
+            setTimeout(() => {
+                sysType("Your request has been logged. An agent is reviewing your dossier.");
+            }, 2000);
+        };
+
+        // Helper: Add User Log
+        function addLog(text, isUser) {
+            const time = new Date().toLocaleTimeString('en-GB', { hour12: false });
+            const div = document.createElement('div');
+            div.className = 'log-row';
+            
+            if(isUser) {
+                div.innerHTML = `<span class="log-meta" style="text-align:right; color:#666;">USER_ID // [${time}]</span><span class="usr-msg">${text}</span>`;
+            } else {
+                div.innerHTML = `<span class="log-meta">SYS // [${time}]</span><span class="sys-msg">> ${text}</span>`;
+            }
+            feed.appendChild(div);
+        }
+
+        // Helper: Typewriter Effect for System
+        function sysType(text) {
+            const time = new Date().toLocaleTimeString('en-GB', { hour12: false });
+            const div = document.createElement('div');
+            div.className = 'log-row';
+            div.innerHTML = `<span class="log-meta">SYS // [${time}]</span><span class="sys-msg"></span>`;
+            feed.appendChild(div);
+            
+            const span = div.querySelector('.sys-msg');
+            let i = 0;
+            span.innerText = "> ";
+            
+            function type() {
+                if (i < text.length) {
+                    span.innerText += text.charAt(i);
+                    i++;
+                    feed.scrollTop = feed.scrollHeight;
+                    setTimeout(type, 20);
+                }
+            }
+            type();
+        }
+    })();
+</script>
+</body>
+</html>
